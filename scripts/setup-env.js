@@ -106,8 +106,65 @@ function loadEnvFile() {
     return true;
   } else {
     console.log('ℹ️  No .env.production file found, using system environment variables');
+
+    // Decode base64 encoded variables if they exist
+    decodeBase64Variables();
+
+    // Combine split variables if they exist
+    combineSplitVariables();
+
     return false;
   }
+}
+
+function decodeBase64Variables() {
+  const base64Vars = [
+    'SUPABASE_ANON_KEY_B64',
+    'SUPABASE_SERVICE_ROLE_KEY_B64',
+    'DATABASE_URL_B64',
+    'NEXTAUTH_SECRET_B64'
+  ];
+
+  base64Vars.forEach(varName => {
+    const encodedValue = process.env[varName];
+    if (encodedValue) {
+      try {
+        const decodedValue = Buffer.from(encodedValue, 'base64').toString('utf8');
+        const originalVarName = varName.replace('_B64', '');
+        process.env[originalVarName] = decodedValue;
+        console.log(`✅ Decoded ${originalVarName} from base64`);
+      } catch (error) {
+        console.log(`⚠️  Failed to decode ${varName}: ${error.message}`);
+      }
+    }
+  });
+}
+
+function combineSplitVariables() {
+  const splitVars = [
+    {
+      name: 'SUPABASE_ANON_KEY',
+      parts: ['SUPABASE_ANON_KEY_PART1', 'SUPABASE_ANON_KEY_PART2', 'SUPABASE_ANON_KEY_PART3']
+    },
+    {
+      name: 'SUPABASE_SERVICE_ROLE_KEY',
+      parts: ['SUPABASE_SERVICE_KEY_PART1', 'SUPABASE_SERVICE_KEY_PART2', 'SUPABASE_SERVICE_KEY_PART3']
+    },
+    {
+      name: 'DATABASE_URL',
+      parts: ['DATABASE_URL_PART1', 'DATABASE_URL_PART2']
+    }
+  ];
+
+  splitVars.forEach(variable => {
+    const parts = variable.parts.map(partName => process.env[partName]).filter(Boolean);
+
+    if (parts.length > 0 && parts.length === variable.parts.length) {
+      const combinedValue = parts.join('');
+      process.env[variable.name] = combinedValue;
+      console.log(`✅ Combined ${variable.name} from ${parts.length} parts`);
+    }
+  });
 }
 
 function main() {
