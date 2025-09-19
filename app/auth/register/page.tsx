@@ -1,67 +1,102 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { useForm } from 'react-hook-form'
+import { RegisterFormSchema, type RegisterForm } from '@/lib/models/user'
+import { createFormResolver, handleFormSubmission } from '@/lib/validation/form-utils'
+import { FormField } from '@/components/forms/FormField'
+import { PasswordStrengthIndicator } from '@/components/forms/PasswordStrengthIndicator'
 
 export default function RegisterPage() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    first_name: '',
-    last_name: '',
-    company: '',
-  })
-  const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }))
-  }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+    watch,
+    setError
+  } = useForm<RegisterForm>({
+    resolver: createFormResolver(RegisterFormSchema),
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+    defaultValues: {
+      email: '',
+      password: '',
+      confirmPassword: '',
+      first_name: '',
+      last_name: '',
+      company: '',
+    }
+  })
+  const watchedPassword = watch('password')
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
+  const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true)
+    setSubmitError('')
+    setSuccessMessage('')
 
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
-      setIsLoading(false)
-      return
-    }
+    await handleFormSubmission(
+      data,
+      async (formData) => {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+            confirmPassword: formData.confirmPassword,
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            company: formData.company,
+          }),
+        })
 
-    try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          company: formData.company,
-        }),
-      })
+        const result = await response.json()
 
-      const data = await response.json()
+        if (!response.ok) {
+          // Check if there are field-specific validation errors
+          if (result.details && Array.isArray(result.details)) {
+            // Set field-specific errors
+            result.details.forEach((detail: { field: string; message: string }) => {
+              if (detail.field) {
+                setError(detail.field as keyof RegisterForm, {
+                  type: 'server',
+                  message: detail.message
+                })
+              }
+            })
+            setIsLoading(false)
+            // Exit without throwing error since we handled it with field-specific errors
+            return
+          }
+          // Only throw error if we don't have field-specific errors
+          throw new Error(result.error || 'Registration failed')
+        }
 
-      if (response.ok) {
-        router.push('/auth/login?message=Registration successful. Please log in.')
-      } else {
-        setError(data.error || 'Registration failed')
+        setSuccessMessage(result.message || 'Registration successful!')
+
+        // Redirect to login after short delay to show success message
+        setTimeout(() => {
+          router.push('/auth/login?message=Registration successful. Please log in.')
+        }, 1500)
+      },
+      (error) => {
+        setSubmitError(error.message)
+        setIsLoading(false)
+      },
+      () => {
+        // Success handled in the submit function
       }
-    } catch (err) {
-      setError('An error occurred. Please try again.')
-    } finally {
-      setIsLoading(false)
-    }
+    )
   }
 
   return (
@@ -72,127 +107,116 @@ export default function RegisterPage() {
             Create your account
           </h2>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
+            {/* Name fields */}
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="first_name" className="sr-only">
-                  First Name
-                </label>
-                <input
-                  id="first_name"
-                  name="first_name"
-                  type="text"
-                  required
-                  className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="First Name"
-                  value={formData.first_name}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label htmlFor="last_name" className="sr-only">
-                  Last Name
-                </label>
-                <input
-                  id="last_name"
-                  name="last_name"
-                  type="text"
-                  required
-                  className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="Last Name"
-                  value={formData.last_name}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Email address"
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="company" className="sr-only">
-                Company
-              </label>
-              <input
-                id="company"
-                name="company"
+              <FormField
+                {...register('first_name')}
+                id="first_name"
                 type="text"
-                required
-                className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Company"
-                value={formData.company}
-                onChange={handleChange}
+                label="First Name"
+                error={errors.first_name}
+                autoComplete="given-name"
+              />
+              <FormField
+                {...register('last_name')}
+                id="last_name"
+                type="text"
+                label="Last Name"
+                error={errors.last_name}
+                autoComplete="family-name"
               />
             </div>
 
+            {/* Email field */}
+            <FormField
+              {...register('email')}
+              id="email"
+              type="email"
+              label="Email address"
+              error={errors.email}
+              autoComplete="email"
+            />
+
+            {/* Company field */}
+            <FormField
+              {...register('company')}
+              id="company"
+              type="text"
+              label="Company"
+              error={errors.company}
+              autoComplete="organization"
+            />
+
+            {/* Password field with strength indicator */}
             <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
+              <FormField
+                {...register('password')}
                 id="password"
-                name="password"
                 type="password"
+                label="Password"
+                error={errors.password}
                 autoComplete="new-password"
-                required
-                className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
+              />
+              <PasswordStrengthIndicator
+                password={watchedPassword || ''}
+                showFeedback={!!watchedPassword && !errors.password}
               />
             </div>
 
-            <div>
-              <label htmlFor="confirmPassword" className="sr-only">
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-              />
-            </div>
+            {/* Confirm password field */}
+            <FormField
+              {...register('confirmPassword')}
+              id="confirmPassword"
+              type="password"
+              label="Confirm Password"
+              error={errors.confirmPassword}
+              autoComplete="new-password"
+            />
           </div>
 
-          {error && (
-            <div className="text-red-600 text-sm text-center">{error}</div>
+          {/* Success message */}
+          {successMessage && (
+            <div className="bg-green-50 border border-green-200 rounded-md p-3">
+              <p className="text-green-800 text-sm text-center">{successMessage}</p>
+            </div>
           )}
 
+          {/* Error message */}
+          {submitError && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+              <p className="text-red-800 text-sm text-center">{submitError}</p>
+            </div>
+          )}
+
+          {/* Submit button */}
           <div>
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Creating account...' : 'Create account'}
+              {isLoading ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Creating account...
+                </span>
+              ) : (
+                'Create account'
+              )}
             </button>
           </div>
 
+          {/* Login link */}
           <div className="text-center">
             <Link
               href="/auth/login"
-              className="text-indigo-600 hover:text-indigo-500"
+              className="text-indigo-600 hover:text-indigo-500 transition-colors"
             >
               Already have an account? Sign in
             </Link>

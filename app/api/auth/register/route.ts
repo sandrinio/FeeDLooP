@@ -9,18 +9,47 @@ import { supabaseAdmin } from '@/lib/database/supabase'
 import {
   validateCreateUser,
   safeValidateCreateUser,
+  safeValidateRegisterForm,
   mapDatabaseToUser,
-  type PublicUser
+  type PublicUser,
+  type RegisterForm
 } from '@/lib/models/user'
 import { DatabaseError } from '@/lib/database/supabase'
+import { checkRateLimit, registrationRateLimit } from '@/lib/validation/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
-    // Parse request body
-    const body = await request.json()
+    // Check rate limit first
+    const rateCheck = checkRateLimit(request, registrationRateLimit)
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Too many registration attempts',
+          message: 'Please wait before trying again'
+        },
+        {
+          status: 429,
+          headers: rateCheck.headers
+        }
+      )
+    }
 
-    // Validate input data
-    const validationResult = safeValidateCreateUser(body)
+    // Parse request body
+    let body: any
+    try {
+      body = await request.json()
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        {
+          status: 400,
+          headers: rateCheck.headers
+        }
+      )
+    }
+
+    // Validate input data with comprehensive form validation
+    const validationResult = safeValidateRegisterForm(body)
 
     if (!validationResult.success) {
       return NextResponse.json(
@@ -28,14 +57,27 @@ export async function POST(request: NextRequest) {
           error: 'Validation failed',
           details: validationResult.error.issues.map(err => ({
             field: err.path.join('.'),
-            message: err.message
+            message: err.message,
+            code: err.code
           }))
         },
-        { status: 400 }
+        {
+          status: 400,
+          headers: rateCheck.headers
+        }
       )
     }
 
-    const userData = validationResult.data
+    const formData = validationResult.data
+
+    // Extract user creation data (exclude confirmPassword)
+    const userData = {
+      email: formData.email,
+      password: formData.password,
+      first_name: formData.first_name,
+      last_name: formData.last_name,
+      company: formData.company
+    }
 
     if (!supabaseAdmin) {
       return NextResponse.json(
@@ -64,8 +106,18 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'User with this email already exists' },
-        { status: 409 }
+        {
+          error: 'Validation failed',
+          details: [{
+            field: 'email',
+            message: 'An account with this email already exists',
+            code: 'custom'
+          }]
+        },
+        {
+          status: 400,
+          headers: rateCheck.headers
+        }
       )
     }
 
@@ -177,7 +229,10 @@ export async function POST(request: NextRequest) {
         message,
         processed_invitations: processedProjects
       },
-      { status: 201 }
+      {
+        status: 201,
+        headers: rateCheck.headers
+      }
     )
 
   } catch (error) {

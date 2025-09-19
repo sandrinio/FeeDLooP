@@ -14,11 +14,38 @@ import {
   type UserSession
 } from '@/lib/models/user'
 import { DatabaseError } from '@/lib/database/supabase'
+import { checkRateLimit, authRateLimit } from '@/lib/validation/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
+    // Check rate limit first
+    const rateCheck = checkRateLimit(request, authRateLimit)
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: 'Too many login attempts',
+          message: 'Please wait before trying again'
+        },
+        {
+          status: 429,
+          headers: rateCheck.headers
+        }
+      )
+    }
+
     // Parse request body
-    const body = await request.json()
+    let body: any
+    try {
+      body = await request.json()
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        {
+          status: 400,
+          headers: rateCheck.headers
+        }
+      )
+    }
 
     // Validate input data
     const validationResult = safeValidateLoginUser(body)
@@ -29,10 +56,14 @@ export async function POST(request: NextRequest) {
           error: 'Validation failed',
           details: validationResult.error.issues.map(err => ({
             field: err.path.join('.'),
-            message: err.message
+            message: err.message,
+            code: err.code
           }))
         },
-        { status: 400 }
+        {
+          status: 400,
+          headers: rateCheck.headers
+        }
       )
     }
 
