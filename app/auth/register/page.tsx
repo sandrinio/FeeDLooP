@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -9,7 +9,7 @@ import { createFormResolver, handleFormSubmission } from '@/lib/validation/form-
 import { FormField } from '@/components/forms/FormField'
 import { PasswordStrengthIndicator } from '@/components/forms/PasswordStrengthIndicator'
 
-export default function RegisterPage() {
+function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
@@ -224,5 +224,17 @@ export default function RegisterPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    }>
+      <RegisterForm />
+    </Suspense>
   )
 }
