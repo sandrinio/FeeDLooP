@@ -1,0 +1,65 @@
+# Production Dockerfile for Coolify with split environment variables
+FROM node:20-alpine AS deps
+WORKDIR /app
+
+RUN apk add --no-cache libc6-compat
+COPY package*.json ./
+RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
+
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+RUN apk add --no-cache libc6-compat
+COPY package*.json ./
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+RUN npm ci && npm cache clean --force
+
+COPY . .
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+RUN apk add --no-cache curl dumb-init
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+# Create startup script that handles split keys
+RUN mkdir -p ./scripts && \
+    echo '#!/bin/sh' > /app/scripts/start.sh && \
+    echo '# Combine split Supabase keys if they exist' >> /app/scripts/start.sh && \
+    echo 'if [ -n "$SUPABASE_ANON_KEY_PART1" ] && [ -n "$SUPABASE_ANON_KEY_PART2" ]; then' >> /app/scripts/start.sh && \
+    echo '  export SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY_PART1}${SUPABASE_ANON_KEY_PART2}"' >> /app/scripts/start.sh && \
+    echo '  echo "✅ Combined SUPABASE_ANON_KEY from parts"' >> /app/scripts/start.sh && \
+    echo 'fi' >> /app/scripts/start.sh && \
+    echo '' >> /app/scripts/start.sh && \
+    echo 'if [ -n "$SUPABASE_SERVICE_KEY_PART1" ] && [ -n "$SUPABASE_SERVICE_KEY_PART2" ]; then' >> /app/scripts/start.sh && \
+    echo '  export SUPABASE_SERVICE_ROLE_KEY="${SUPABASE_SERVICE_KEY_PART1}${SUPABASE_SERVICE_KEY_PART2}"' >> /app/scripts/start.sh && \
+    echo '  echo "✅ Combined SUPABASE_SERVICE_ROLE_KEY from parts"' >> /app/scripts/start.sh && \
+    echo 'fi' >> /app/scripts/start.sh && \
+    echo '' >> /app/scripts/start.sh && \
+    echo 'echo "🚀 Starting FeeDLooP server..."' >> /app/scripts/start.sh && \
+    echo 'exec node server.js' >> /app/scripts/start.sh && \
+    chmod +x /app/scripts/start.sh
+
+RUN chown -R nextjs:nodejs /app
+USER nextjs
+
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:3000/api/test-db || exit 1
+
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["/app/scripts/start.sh"]
