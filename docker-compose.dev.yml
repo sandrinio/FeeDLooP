@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # MinIO for local file storage development
+  minio:
+    image: minio/minio:latest
+    container_name: feedloop-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - feedloop-network
+
+  # MinIO bucket creation (runs once to create buckets)
+  createbuckets:
+    image: minio/mc:latest
+    container_name: feedloop-createbuckets
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadmin123;
+      /usr/bin/mc rm -r --force myminio/feedloop-attachments;
+      /usr/bin/mc mb myminio/feedloop-attachments;
+      /usr/bin/mc policy download myminio/feedloop-attachments;
+      exit 0;
+      "
+    networks:
+      - feedloop-network
+
+  # Redis for session storage (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: feedloop-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - feedloop-network
+
+volumes:
+  minio_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  feedloop-network:
+    driver: bridge

@@ -1,0 +1,101 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8] [cursor=pointer]
+  - alert [ref=e11]
+  - generic [ref=e12]:
+    - navigation [ref=e13]:
+      - generic [ref=e15]:
+        - heading "FeeDLooP" [level=1] [ref=e18]
+        - generic [ref=e19]:
+          - button "View notifications" [ref=e20]:
+            - img [ref=e21]
+          - button "PO Project Owner Test Company" [ref=e24]:
+            - generic [ref=e26]: PO
+            - generic [ref=e28]:
+              - generic [ref=e29]: Project Owner
+              - generic [ref=e30]: Test Company
+            - img [ref=e31]
+    - generic [ref=e33]:
+      - generic [ref=e34]:
+        - navigation [ref=e36]:
+          - link "Overview" [ref=e38] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e39] [cursor=pointer]
+            - text: Overview
+          - generic [ref=e42]:
+            - heading "Projects" [level=3] [ref=e43]
+            - link "Create new project" [ref=e44] [cursor=pointer]:
+              - /url: /dashboard/projects/new
+              - img [ref=e45] [cursor=pointer]
+          - generic [ref=e51]:
+            - heading "Project Menu" [level=3] [ref=e52]
+            - generic [ref=e53]:
+              - link "Project Details" [ref=e54] [cursor=pointer]:
+                - /url: /dashboard/projects/new
+                - img [ref=e55] [cursor=pointer]
+                - text: Project Details
+              - link "Reports" [ref=e57] [cursor=pointer]:
+                - /url: /dashboard/projects/new/reports
+                - img [ref=e58] [cursor=pointer]
+                - text: Reports
+              - link "Team" [ref=e60] [cursor=pointer]:
+                - /url: /dashboard/projects/new/team
+                - img [ref=e61] [cursor=pointer]
+                - text: Team
+              - link "Export" [ref=e63] [cursor=pointer]:
+                - /url: /dashboard/projects/new/export
+                - img [ref=e64] [cursor=pointer]
+                - text: Export
+        - generic [ref=e67]:
+          - paragraph [ref=e68]: FeeDLooP v1.0
+          - paragraph [ref=e69]: Feedback Collection Service
+      - main [ref=e70]:
+        - generic [ref=e72]:
+          - generic [ref=e73]:
+            - link "Back to Dashboard" [ref=e74] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e75] [cursor=pointer]
+              - text: Back to Dashboard
+            - generic [ref=e77]:
+              - img [ref=e78]
+              - generic [ref=e80]:
+                - heading "Create New Project" [level=1] [ref=e81]
+                - paragraph [ref=e82]: Set up a new feedback collection project for your application.
+          - generic [ref=e84]:
+            - generic [ref=e85]:
+              - generic [ref=e86]: Project Name *
+              - textbox "Project Name *" [disabled] [ref=e88]: Enhanced Invitation Test Project 1758271669873
+              - paragraph [ref=e89]: Choose a descriptive name for your project. This will help you identify it later.
+            - generic [ref=e91]:
+              - img [ref=e92]
+              - generic [ref=e94]:
+                - heading "What happens after creation?" [level=3] [ref=e95]
+                - list [ref=e97]:
+                  - listitem [ref=e98]: A unique integration key will be generated for your project
+                  - listitem [ref=e99]: You'll receive widget code to embed on your website
+                  - listitem [ref=e100]: You can invite team members to collaborate
+                  - listitem [ref=e101]: Start collecting feedback, bug reports, and feature requests
+            - generic [ref=e102]:
+              - link "Cancel" [ref=e103] [cursor=pointer]:
+                - /url: /dashboard
+              - button "Creating..." [disabled] [ref=e104]:
+                - generic [ref=e105]: Creating...
+          - generic [ref=e107]:
+            - heading "Next Steps After Creation" [level=3] [ref=e108]
+            - generic [ref=e109]:
+              - generic [ref=e110]:
+                - heading "1. Widget Integration" [level=4] [ref=e111]
+                - paragraph [ref=e112]: Copy the provided widget code and embed it on your website to start collecting feedback.
+              - generic [ref=e113]:
+                - heading "2. Team Collaboration" [level=4] [ref=e114]
+                - paragraph [ref=e115]: Invite team members to help manage and respond to user feedback.
+              - generic [ref=e116]:
+                - heading "3. Report Management" [level=4] [ref=e117]
+                - paragraph [ref=e118]: Organize reports by status, priority, and type to streamline your workflow.
+              - generic [ref=e119]:
+                - heading "4. Export & Integration" [level=4] [ref=e120]
+                - paragraph [ref=e121]: Export reports to CSV for integration with tools like Jira or Azure DevOps.
+```

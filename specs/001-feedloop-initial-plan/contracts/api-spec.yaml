@@ -1,0 +1,705 @@
+openapi: 3.0.3
+info:
+  title: FeeDLooP API
+  description: Feedback collection service API for managing projects, reports, and user collaboration
+  version: 1.0.0
+  contact:
+    name: FeeDLooP Development Team
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://feedloop.com/api
+    description: Production server
+
+security:
+  - sessionAuth: []
+
+paths:
+  # Authentication endpoints
+  /auth/register:
+    post:
+      summary: Register new user account
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  minLength: 8
+                  example: password123
+                name:
+                  type: string
+                  maxLength: 100
+                  example: John Doe
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          description: Email already exists
+
+  /auth/login:
+    post:
+      summary: Authenticate user login
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Invalid credentials
+
+  # Project management endpoints
+  /projects:
+    get:
+      summary: List user's projects
+      tags: [Projects]
+      responses:
+        '200':
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectResponse'
+
+    post:
+      summary: Create new project
+      tags: [Projects]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  example: My Project
+      responses:
+        '201':
+          description: Project created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /projects/{projectId}:
+    get:
+      summary: Get project details
+      tags: [Projects]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDetailResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update project
+      tags: [Projects]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete project
+      tags: [Projects]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '204':
+          description: Project deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{projectId}/invitations:
+    post:
+      summary: Invite user to project
+      tags: [Projects]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                can_invite:
+                  type: boolean
+                  default: false
+      responses:
+        '201':
+          description: User invited successfully
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Remove user from project
+      tags: [Projects]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+      responses:
+        '204':
+          description: User removed successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Report management endpoints
+  /projects/{projectId}/reports:
+    get:
+      summary: List project reports
+      tags: [Reports]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, archived]
+            default: active
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [bug, initiative, feedback]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: List of reports
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reports:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReportResponse'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationResponse'
+
+    post:
+      summary: Create new report
+      tags: [Reports]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportCreateRequest'
+      responses:
+        '201':
+          description: Report created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /projects/{projectId}/reports/{reportId}:
+    get:
+      summary: Get report details
+      tags: [Reports]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/ReportId'
+      responses:
+        '200':
+          description: Report details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportDetailResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update report
+      tags: [Reports]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/ReportId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [active, archived]
+                priority:
+                  type: string
+                  enum: [low, medium, high, critical]
+      responses:
+        '200':
+          description: Report updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Widget endpoint (public)
+  /widget/submit:
+    post:
+      summary: Submit feedback via widget
+      tags: [Widget]
+      security: []
+      parameters:
+        - name: project-key
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WidgetSubmissionRequest'
+      responses:
+        '201':
+          description: Feedback submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  message:
+                    type: string
+                    example: Thank you for your feedback!
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  # File upload endpoints
+  /uploads:
+    post:
+      summary: Upload attachment file
+      tags: [Files]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                reportId:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttachmentResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  # Export endpoints
+  /projects/{projectId}/export:
+    get:
+      summary: Export project reports to CSV
+      tags: [Export]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, archived]
+            default: active
+      responses:
+        '200':
+          description: CSV export file
+          content:
+            text/csv:
+              schema:
+                type: string
+                example: |
+                  ID,Type,Title,Description,Status,Created,Reporter
+                  123,bug,Login issue,Cannot login with email,active,2025-01-19,user@example.com
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: next-auth.session-token
+
+  parameters:
+    ProjectId:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    ReportId:
+      name: reportId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    ProjectResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        owner_id:
+          type: string
+          format: uuid
+        integration_key:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        report_count:
+          type: integer
+
+    ProjectDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/ProjectResponse'
+        - type: object
+          properties:
+            members:
+              type: array
+              items:
+                type: object
+                properties:
+                  user_id:
+                    type: string
+                    format: uuid
+                  email:
+                    type: string
+                  name:
+                    type: string
+                  role:
+                    type: string
+                    enum: [owner, member]
+                  can_invite:
+                    type: boolean
+
+    ReportCreateRequest:
+      type: object
+      required: [type, title, description]
+      properties:
+        type:
+          type: string
+          enum: [bug, initiative, feedback]
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 5000
+        reporter_email:
+          type: string
+          format: email
+        reporter_name:
+          type: string
+          maxLength: 100
+        url:
+          type: string
+          format: uri
+        user_agent:
+          type: string
+        console_logs:
+          type: array
+          items:
+            type: object
+        network_requests:
+          type: array
+          items:
+            type: object
+
+    ReportResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [bug, initiative, feedback]
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [active, archived]
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+        reporter_email:
+          type: string
+        reporter_name:
+          type: string
+        url:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        attachment_count:
+          type: integer
+
+    ReportDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/ReportResponse'
+        - type: object
+          properties:
+            user_agent:
+              type: string
+            console_logs:
+              type: array
+              items:
+                type: object
+            network_requests:
+              type: array
+              items:
+                type: object
+            attachments:
+              type: array
+              items:
+                $ref: '#/components/schemas/AttachmentResponse'
+
+    WidgetSubmissionRequest:
+      type: object
+      required: [type, title, description]
+      properties:
+        type:
+          type: string
+          enum: [bug, initiative, feedback]
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 5000
+        reporter_email:
+          type: string
+          format: email
+        reporter_name:
+          type: string
+          maxLength: 100
+        url:
+          type: string
+          format: uri
+        user_agent:
+          type: string
+        console_logs:
+          type: array
+          items:
+            type: object
+        network_requests:
+          type: array
+          items:
+            type: object
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              filename:
+                type: string
+              data:
+                type: string
+                format: base64
+              type:
+                type: string
+
+    AttachmentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        file_size:
+          type: integer
+        mime_type:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        download_url:
+          type: string
+          format: uri
+
+    PaginationResponse:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        total_pages:
+          type: integer
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: VALIDATION_ERROR
+            message: Invalid input data
+            details:
+              email: Must be a valid email address
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: NOT_FOUND
+            message: Resource not found
