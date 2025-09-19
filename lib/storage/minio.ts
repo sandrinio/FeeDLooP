@@ -5,14 +5,13 @@
 
 import { Client as MinIOClient } from 'minio'
 import { Readable } from 'stream'
-import { ENV } from '../env'
 
-// Environment variables validation
-const minioEndpoint = ENV.MINIO_ENDPOINT
-const minioPort = ENV.MINIO_PORT ? parseInt(ENV.MINIO_PORT) : 9000
-const minioAccessKey = ENV.MINIO_ACCESS_KEY
-const minioSecretKey = ENV.MINIO_SECRET_KEY
-const minioUseSSL = ENV.MINIO_USE_SSL === 'true'
+// Environment variables validation (using process.env for Edge Runtime compatibility)
+const minioEndpoint = process.env.MINIO_ENDPOINT
+const minioPort = process.env.MINIO_PORT ? parseInt(process.env.MINIO_PORT) : 9000
+const minioAccessKey = process.env.MINIO_ACCESS_KEY
+const minioSecretKey = process.env.MINIO_SECRET_KEY
+const minioUseSSL = process.env.MINIO_USE_SSL === 'true'
 
 if (!minioEndpoint) {
   throw new Error('Missing MINIO_ENDPOINT environment variable')

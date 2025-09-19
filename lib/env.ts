@@ -1,48 +1,88 @@
 /**
  * Environment configuration loader for production
  * Reads from .env.production file to bypass Coolify truncation
+ * Edge Runtime compatible fallback to process.env
  */
-
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
 
 let envCache: Record<string, string> | null = null;
 
-function loadProductionEnv(): Record<string, string> {
+// Check if we're in Edge Runtime (no access to fs/path)
+function isEdgeRuntime(): boolean {
+  try {
+    // These APIs don't exist in Edge Runtime
+    return typeof globalThis.ReadableStream !== 'undefined' &&
+           typeof require === 'undefined' &&
+           typeof process !== 'undefined' &&
+           typeof process.cwd !== 'function';
+  } catch {
+    return true;
+  }
+}
+
+async function loadProductionEnv(): Promise<Record<string, string>> {
   if (envCache) {
     return envCache;
   }
 
-  const envPath = join(process.cwd(), '.env.production');
-
-  if (!existsSync(envPath)) {
-    console.warn('⚠️  .env.production file not found, using process.env');
+  // In Edge Runtime, fall back to process.env immediately
+  if (isEdgeRuntime()) {
+    console.warn('⚠️  Edge Runtime detected, using process.env');
     envCache = process.env as Record<string, string>;
     return envCache;
   }
 
-  const envContent = readFileSync(envPath, 'utf8');
-  const env: Record<string, string> = {};
+  try {
+    // Dynamic imports for Node.js APIs (not available in Edge Runtime)
+    const { readFileSync, existsSync } = await import('fs');
+    const { join } = await import('path');
 
-  envContent.split('\n').forEach(line => {
-    line = line.trim();
-    if (line && !line.startsWith('#')) {
-      const [key, ...valueParts] = line.split('=');
-      if (key && valueParts.length > 0) {
-        env[key] = valueParts.join('=');
-      }
+    const envPath = join(process.cwd(), '.env.production');
+
+    if (!existsSync(envPath)) {
+      console.warn('⚠️  .env.production file not found, using process.env');
+      envCache = process.env as Record<string, string>;
+      return envCache;
     }
-  });
 
-  // Merge with process.env, giving priority to .env.production
-  envCache = { ...process.env, ...env };
-  return envCache;
+    const envContent = readFileSync(envPath, 'utf8');
+    const env: Record<string, string> = {};
+
+    envContent.split('\n').forEach(line => {
+      line = line.trim();
+      if (line && !line.startsWith('#')) {
+        const [key, ...valueParts] = line.split('=');
+        if (key && valueParts.length > 0) {
+          env[key] = valueParts.join('=');
+        }
+      }
+    });
+
+    // Merge with process.env, giving priority to .env.production
+    envCache = { ...process.env, ...env };
+    return envCache;
+  } catch (error) {
+    console.warn('⚠️  File system access failed, using process.env:', error);
+    envCache = process.env as Record<string, string>;
+    return envCache;
+  }
 }
 
 // Environment variables getter with production file fallback
 export function getEnv(key: string): string | undefined {
-  const env = loadProductionEnv();
-  return env[key];
+  // For Edge Runtime, return process.env immediately (synchronous)
+  if (isEdgeRuntime()) {
+    return process.env[key];
+  }
+
+  // For Node.js runtime, we need async loading but this is a sync function
+  // So we'll use process.env as fallback and cache will be populated elsewhere
+  if (!envCache) {
+    // Start loading asynchronously but return process.env for now
+    loadProductionEnv().catch(console.error);
+    return process.env[key];
+  }
+
+  return envCache[key];
 }
 
 // Required environment variables with fallback

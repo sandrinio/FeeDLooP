@@ -243,7 +243,7 @@ function createProductionEnvFile() {
 
   console.log(`✅ Created .env.production file at ${envPath}`);
 
-  // Set environment variables in current process
+  // Set environment variables in current process with full JWT tokens
   process.env.DATABASE_URL = PRODUCTION_CONFIG.DATABASE_URL;
   process.env.NEXTAUTH_SECRET = PRODUCTION_CONFIG.NEXTAUTH_SECRET;
   process.env.NEXTAUTH_URL = PRODUCTION_CONFIG.NEXTAUTH_URL;
@@ -258,6 +258,8 @@ function createProductionEnvFile() {
   process.env.NODE_ENV = PRODUCTION_CONFIG.NODE_ENV;
 
   console.log('✅ Environment variables set in current process');
+  console.log(`   SUPABASE_ANON_KEY length: ${supabaseAnonKey.length} characters`);
+  console.log(`   SUPABASE_SERVICE_ROLE_KEY length: ${supabaseServiceKey.length} characters`);
 }
 
 function main() {
