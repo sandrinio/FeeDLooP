@@ -1,0 +1,12 @@
+{
+  "version": "0.1.0",
+  "buildId": "mfr7ovho",
+  "buildTime": "2025-09-19T19:07:29.774Z",
+  "files": {
+    "widget": {
+      "filename": "feedloop-widget.min.js",
+      "size": 29520,
+      "integrity": "sha384-MrWXj4zPkorSPxJ8eQKzOCnYmwHJTrEhEiGJR2e2v2OLbb2Yp0EX6uUVBBCiy1vC"
+    }
+  }
+}

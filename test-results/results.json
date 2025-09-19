@@ -11,7 +11,7 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 5
+      "actualWorkers": 1
     },
     "preserveOutput": "always",
     "reporter": [
@@ -43,7 +43,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 5
+          "actualWorkers": 1
         },
         "id": "chromium",
         "name": "chromium",
@@ -59,7 +59,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 5
+          "actualWorkers": 1
         },
         "id": "firefox",
         "name": "firefox",
@@ -75,7 +75,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 5
+          "actualWorkers": 1
         },
         "id": "webkit",
         "name": "webkit",
@@ -91,7 +91,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 5
+          "actualWorkers": 1
         },
         "id": "Mobile Chrome",
         "name": "Mobile Chrome",
@@ -107,7 +107,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 5
+          "actualWorkers": 1
         },
         "id": "Mobile Safari",
         "name": "Mobile Safari",
@@ -133,21 +133,21 @@
   },
   "suites": [
     {
-      "title": "auth-validation-simple.spec.ts",
-      "file": "auth-validation-simple.spec.ts",
+      "title": "widget-file-upload.spec.ts",
+      "file": "widget-file-upload.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "Auth Form Validation - Simple Tests",
-          "file": "auth-validation-simple.spec.ts",
-          "line": 8,
+          "title": "Widget File Upload Integration",
+          "file": "widget-file-upload.spec.ts",
+          "line": 14,
           "column": 6,
           "specs": [
             {
-              "title": "Registration form validation works correctly",
-              "ok": true,
+              "title": "should upload real image file using minified widget",
+              "ok": false,
               "tags": [],
               "tests": [
                 {
@@ -160,499 +160,63 @@
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2390,
-                      "errors": [],
+                      "status": "failed",
+                      "duration": 7826,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('.feedloop-trigger-btn')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.feedloop-trigger-btn')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('.feedloop-trigger-btn')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.feedloop-trigger-btn')\u001b[22m\n\n    at /Volumes/My Drive/dev/FeeDLooP_v1/tests/e2e/widget-file-upload.spec.ts:62:27",
+                        "location": {
+                          "file": "/Volumes/My Drive/dev/FeeDLooP_v1/tests/e2e/widget-file-upload.spec.ts",
+                          "column": 27,
+                          "line": 62
+                        },
+                        "snippet": "  60 |     // Verify widget trigger is visible\n  61 |     const trigger = page.locator('.feedloop-trigger-btn')\n> 62 |     await expect(trigger).toBeVisible()\n     |                           ^\n  63 |\n  64 |     // Click widget trigger to open\n  65 |     await trigger.click()"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Volumes/My Drive/dev/FeeDLooP_v1/tests/e2e/widget-file-upload.spec.ts",
+                            "column": 27,
+                            "line": 62
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('.feedloop-trigger-btn')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.feedloop-trigger-btn')\u001b[22m\n\n\n  60 |     // Verify widget trigger is visible\n  61 |     const trigger = page.locator('.feedloop-trigger-btn')\n> 62 |     await expect(trigger).toBeVisible()\n     |                           ^\n  63 |\n  64 |     // Click widget trigger to open\n  65 |     await trigger.click()\n    at /Volumes/My Drive/dev/FeeDLooP_v1/tests/e2e/widget-file-upload.spec.ts:62:27"
+                        }
+                      ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-09-19T16:03:14.015Z",
+                      "startTime": "2025-09-19T18:33:00.661Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Volumes/My Drive/dev/FeeDLooP_v1/test-results/widget-file-upload-Widget--ba5a5--file-using-minified-widget-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Volumes/My Drive/dev/FeeDLooP_v1/test-results/widget-file-upload-Widget--ba5a5--file-using-minified-widget-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Volumes/My Drive/dev/FeeDLooP_v1/test-results/widget-file-upload-Widget--ba5a5--file-using-minified-widget-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Volumes/My Drive/dev/FeeDLooP_v1/tests/e2e/widget-file-upload.spec.ts",
+                        "column": 27,
+                        "line": 62
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
-              "id": "e9d43420397199086487-013877368f3ddce933ad",
-              "file": "auth-validation-simple.spec.ts",
-              "line": 15,
-              "column": 7
-            },
-            {
-              "title": "Login form validation works correctly",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 2027,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-19T16:03:14.018Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e9d43420397199086487-b697e7900cabe20226d2",
-              "file": "auth-validation-simple.spec.ts",
-              "line": 51,
-              "column": 7
-            },
-            {
-              "title": "Form navigation works correctly",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 2591,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-19T16:03:14.015Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e9d43420397199086487-0e09231709a9fd92067a",
-              "file": "auth-validation-simple.spec.ts",
-              "line": 71,
-              "column": 7
-            },
-            {
-              "title": "Registration form validation works correctly",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 3704,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-19T16:03:14.014Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e9d43420397199086487-b0040c3064f589efb795",
-              "file": "auth-validation-simple.spec.ts",
-              "line": 15,
-              "column": 7
-            },
-            {
-              "title": "Login form validation works correctly",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 4,
-                      "status": "passed",
-                      "duration": 3178,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-19T16:03:14.012Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e9d43420397199086487-2f3548a386dd25ce4aff",
-              "file": "auth-validation-simple.spec.ts",
-              "line": 51,
-              "column": 7
-            },
-            {
-              "title": "Form navigation works correctly",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "firefox",
-                  "projectName": "firefox",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 6564,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-19T16:03:17.063Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e9d43420397199086487-587ba6f65952628fe0bb",
-              "file": "auth-validation-simple.spec.ts",
-              "line": 71,
-              "column": 7
-            },
-            {
-              "title": "Registration form validation works correctly",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "webkit",
-                  "projectName": "webkit",
-                  "results": [
-                    {
-                      "workerIndex": 6,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2639,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-19T16:03:17.673Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e9d43420397199086487-cc40e8011f1f110c8e5e",
-              "file": "auth-validation-simple.spec.ts",
-              "line": 15,
-              "column": 7
-            },
-            {
-              "title": "Login form validation works correctly",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "webkit",
-                  "projectName": "webkit",
-                  "results": [
-                    {
-                      "workerIndex": 7,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 2537,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-19T16:03:17.667Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e9d43420397199086487-4a489e4bca3933bbc25b",
-              "file": "auth-validation-simple.spec.ts",
-              "line": 51,
-              "column": 7
-            },
-            {
-              "title": "Form navigation works correctly",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "webkit",
-                  "projectName": "webkit",
-                  "results": [
-                    {
-                      "workerIndex": 8,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 4736,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-19T16:03:19.613Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e9d43420397199086487-ff1fa9b7f85ce7817825",
-              "file": "auth-validation-simple.spec.ts",
-              "line": 71,
-              "column": 7
-            },
-            {
-              "title": "Registration form validation works correctly",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 9,
-                      "parallelIndex": 4,
-                      "status": "passed",
-                      "duration": 4922,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-19T16:03:19.860Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e9d43420397199086487-25723c387ea87bdf1902",
-              "file": "auth-validation-simple.spec.ts",
-              "line": 15,
-              "column": 7
-            },
-            {
-              "title": "Login form validation works correctly",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 10,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 3862,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-19T16:03:20.923Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e9d43420397199086487-b0b5ebd33994bb320111",
-              "file": "auth-validation-simple.spec.ts",
-              "line": 51,
-              "column": 7
-            },
-            {
-              "title": "Form navigation works correctly",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 11,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 4231,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-19T16:03:20.985Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e9d43420397199086487-f73bd256fd3562a405fa",
-              "file": "auth-validation-simple.spec.ts",
-              "line": 71,
-              "column": 7
-            },
-            {
-              "title": "Registration form validation works correctly",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Safari",
-                  "projectName": "Mobile Safari",
-                  "results": [
-                    {
-                      "workerIndex": 14,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 1430,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-19T16:03:25.327Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e9d43420397199086487-0f9a94598f3aa4d2219c",
-              "file": "auth-validation-simple.spec.ts",
-              "line": 15,
-              "column": 7
-            },
-            {
-              "title": "Login form validation works correctly",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Safari",
-                  "projectName": "Mobile Safari",
-                  "results": [
-                    {
-                      "workerIndex": 12,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 1505,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-19T16:03:25.140Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e9d43420397199086487-1bd851cb7de38ddf1c08",
-              "file": "auth-validation-simple.spec.ts",
-              "line": 51,
-              "column": 7
-            },
-            {
-              "title": "Form navigation works correctly",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Safari",
-                  "projectName": "Mobile Safari",
-                  "results": [
-                    {
-                      "workerIndex": 13,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 1714,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-19T16:03:25.326Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "e9d43420397199086487-3d1735e6dbf8c3308b0e",
-              "file": "auth-validation-simple.spec.ts",
-              "line": 71,
+              "id": "7e5b80eb969366f096ef-b2bb31c7438dbba733a1",
+              "file": "widget-file-upload.spec.ts",
+              "line": 25,
               "column": 7
             }
           ]
@@ -662,11 +226,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-09-19T16:03:11.482Z",
-    "duration": 15813.196,
-    "expected": 15,
+    "startTime": "2025-09-19T18:32:58.141Z",
+    "duration": 10505.882,
+    "expected": 0,
     "skipped": 0,
-    "unexpected": 0,
+    "unexpected": 1,
     "flaky": 0
   }
 }

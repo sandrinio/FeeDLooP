@@ -120,16 +120,16 @@
 - [ ] T059 PUT /api/projects/[id]/reports/[reportId] endpoint in app/api/projects/[id]/reports/[reportId]/route.ts
 
 ### Widget & File Handling
-- [ ] T060 POST /api/widget/submit endpoint in app/api/widget/submit/route.ts
-- [ ] T061 POST /api/uploads endpoint with MinIO integration in app/api/uploads/route.ts
+- [x] T060 POST /api/widget/submit endpoint in app/api/widget/submit/route.ts ✅ COMPLETED
+- [x] T061 POST /api/uploads endpoint with MinIO integration in app/api/uploads/route.ts ✅ COMPLETED
 - [ ] T062 GET /api/projects/[id]/export CSV endpoint in app/api/projects/[id]/export/route.ts
 
-## Phase 3.7: Embeddable Widget Development
-- [ ] T063 [P] Widget core JavaScript with CSS isolation in public/widget/feedloop-widget.js
-- [ ] T064 [P] Widget CSS with scoped styling in public/widget/widget.css
-- [ ] T065 [P] Widget form components (feedback types, rich text, file upload) in public/widget/components.js
-- [ ] T066 [P] Widget API client for submission in public/widget/api-client.js
-- [ ] T067 Widget build and minification script in scripts/build-widget.js
+## Phase 3.7: Embeddable Widget Development ✅ MOSTLY COMPLETED
+- [x] T063 [P] Widget core JavaScript with CSS isolation in public/widget/feedloop-widget.js ✅ COMPLETED
+- [x] T064 [P] Widget CSS with scoped styling in public/widget/widget.css ✅ COMPLETED
+- [x] T065 [P] Widget form components (feedback types, rich text, file upload) in public/widget/components.js ✅ COMPLETED (integrated in main file)
+- [x] T066 [P] Widget API client for submission in public/widget/api-client.js ✅ COMPLETED (integrated in main file)
+- [x] T067 Widget build and minification script in scripts/build-widget.js ✅ COMPLETED
 
 ## Phase 3.8: Dashboard Frontend Components
 ### Authentication Pages

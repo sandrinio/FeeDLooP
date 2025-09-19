@@ -1,0 +1,24 @@
+{
+  "name": "FeeDLooP Widget",
+  "version": "0.1.0",
+  "description": "Embeddable feedback collection widget",
+  "buildTime": "2025-09-19T19:07:29.774Z",
+  "files": {
+    "production": {
+      "main": "feedloop-widget.min.js",
+      "size": 29520,
+      "integrity": "sha384-MrWXj4zPkorSPxJ8eQKzOCnYmwHJTrEhEiGJR2e2v2OLbb2Yp0EX6uUVBBCiy1vC"
+    },
+    "development": {
+      "main": "feedloop-widget.dev.js"
+    }
+  },
+  "integration": {
+    "script": "<script src=\"/widget/dist/feedloop-widget.min.js\" data-project-key=\"YOUR_PROJECT_KEY\"></script>",
+    "attributes": {
+      "data-project-key": "Required: Your project integration key",
+      "data-position": "Optional: bottom-right|bottom-left|top-right|top-left",
+      "data-theme": "Optional: default|dark|light"
+    }
+  }
+}

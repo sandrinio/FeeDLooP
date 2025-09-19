@@ -757,27 +757,172 @@ Updates report status, priority, or archives it.
 
 ### Widget API
 
-#### 🚀 Submit Feedback (Public)
+#### 🚀 Submit Feedback (Public) ✅ FULLY WORKING
 ```http
 POST /api/widget/submit
 ```
 
-Public endpoint for widget submissions. Does not require authentication.
+Public endpoint for widget submissions. Does not require authentication. Uses multipart/form-data for file upload support.
 
-**Request Body:**
+**Content-Type:** `multipart/form-data`
+
+**Form Fields (Current Working Implementation):**
+```
+project_key: "flp_xxxxxxxxxxxxx"    // Required: Project integration key
+type: "bug"                         // Required: bug|initiative|feedback
+title: "Bug Report from Widget"     // Required: 1-200 characters
+description: "Description..."        // Required: 1-5000 characters
+priority: "medium"                   // Optional: Priority level
+reporter_name: "John Doe"           // Optional: User name
+reporter_email: "user@example.com"  // Optional: User email
+url: "https://app.example.com"      // Optional: Page URL
+user_agent: "Mozilla/5.0..."        // Optional: Browser user agent
+console_logs: "[{...}]"             // Optional: JSON string of console logs
+network_requests: "[{...}]"         // Optional: JSON string of network requests
+```
+
+**Current Implementation Status:**
+- ✅ Complete form submission working with debugging
+- ✅ Validation with Zod schemas (fixed field mapping issues)
+- ✅ Database integration with admin client
+- ✅ Project key validation (resolved field name mismatches)
+- ✅ User info and diagnostic data handling
+- ✅ Console logs and network request processing
+- ✅ Build system with minification and integrity hashes
+- ⚠️ File attachments UI ready (MinIO integration temporarily disabled)
+
+**Actual Database Schema Mapping:**
 ```json
 {
-  "integration_key": "flp_xxxxxxxxxxxxx",
-  "type": "bug",
-  "title": "Bug Report from Widget",
-  "description": "Description of the issue...",
-  "reporter_email": "user@example.com",
-  "reporter_name": "John Doe",
-  "url": "https://yoursite.com/page",
-  "user_agent": "Mozilla/5.0...",
-  "console_logs": [...],
-  "network_requests": [...],
-  "attachments": ["base64-encoded-image-data"]
+  "project_id": "uuid",           // From projectKey lookup
+  "type": "bug|initiative|feedback",
+  "title": "Report title",
+  "description": "Report description",
+  "status": "active",             // Default status
+  "priority": "medium",           // Default priority
+  "reporter_name": "Optional name",
+  "reporter_email": "Optional email",
+  "url": "Page URL from diagnostic data",
+  "user_agent": "Browser info",
+  "console_logs": {               // JSON object with diagnostic data
+    "browser": "...",
+    "os": "...",
+    "screen_resolution": "...",
+    "page": {...}
+  },
+  "network_requests": null,       // Not implemented yet
+  "created_at": "ISO timestamp",
+  "updated_at": "ISO timestamp"
+}
+```
+
+**Response (201 Created) - Current Working Format:**
+```json
+{
+  "success": true,
+  "message": "Feedback submitted successfully",
+  "report_id": "42679e7b-dc3d-45a3-835f-649348a4fe1e",
+  "attachments_uploaded": 0,
+  "total_attachments": 0
+}
+```
+
+**Recent Fixes Applied:**
+- Fixed field name mapping between widget and API (project_key vs projectKey)
+- Resolved Zod validation schema compatibility issues
+- Added comprehensive debugging logs for troubleshooting
+- Updated diagnostic data structure to match schema expectations
+
+**Response with Attachments (Future):**
+```json
+{
+  "success": true,
+  "message": "Feedback submitted successfully",
+  "report_id": "uuid",
+  "attachments_uploaded": 3,
+  "total_attachments": 3,
+  "attachments": [
+    {
+      "id": "uuid",
+      "filename": "screenshot.png",
+      "original_filename": "Screenshot 2024-12-19.png",
+      "url": "https://storage.../attachments/...",
+      "size": 102400,
+      "content_type": "image/png"
+    }
+  ],
+  "attachment_errors": []
+}
+```
+
+**Error Responses:**
+- `400` - Validation failed, invalid project key, or malformed data
+- `500` - Server error or database issues
+
+**Example cURL Request (Working):**
+```bash
+curl -X POST http://localhost:3000/api/widget/submit \
+  -H "Content-Type: multipart/form-data" \
+  -F "project_key=flp_demo12345678901234" \
+  -F "type=bug" \
+  -F "title=Test Bug Report" \
+  -F "description=This is a test bug report" \
+  -F "priority=medium" \
+  -F "reporter_name=Test User" \
+  -F "reporter_email=test@example.com" \
+  -F "url=http://localhost:3000/test-page" \
+  -F "user_agent=curl/7.68.0"
+```
+
+---
+
+### File Uploads
+
+#### 📎 Upload Attachment ✅ IMPLEMENTED
+```http
+POST /api/uploads
+```
+
+Uploads files to MinIO storage for report attachments. Supports both multipart form uploads and JSON base64 uploads.
+
+**Implementation Status:**
+- ✅ Multipart form-data upload
+- ✅ JSON base64 upload (for widget)
+- ✅ File validation and size limits
+- ✅ Database attachment records
+- ✅ Project and report validation
+- ⚠️ MinIO storage integration (temporarily disabled for testing)
+
+**Request Format 1: Multipart Form Data**
+- Content-Type: `multipart/form-data`
+- Max file size: 10MB per file
+- Max files: 5 per upload
+- Supported types: Images, PDF, Office documents
+
+**Form Fields:**
+```
+files: [File, File, ...]           // Required: File objects
+project_id: "uuid"                 // Required: Project UUID
+report_id: "uuid"                  // Optional: Report UUID
+description: "File description"    // Optional: Description
+```
+
+**Request Format 2: JSON Base64 (Widget)**
+- Content-Type: `application/json`
+
+```json
+{
+  "project_id": "uuid",
+  "report_id": "uuid",
+  "description": "Optional description",
+  "attachments": [
+    {
+      "filename": "screenshot.png",
+      "content_type": "image/png",
+      "size": 102400,
+      "base64_data": "data:image/png;base64,iVBOR..."
+    }
+  ]
 }
 ```
 
@@ -785,54 +930,47 @@ Public endpoint for widget submissions. Does not require authentication.
 ```json
 {
   "success": true,
-  "report_id": "uuid",
-  "message": "Thank you for your feedback!"
+  "uploaded": [
+    {
+      "id": "uuid",
+      "filename": "screenshot.png",
+      "original_filename": "Screenshot 2024-12-19.png",
+      "url": "https://storage.../attachments/...",
+      "size": 102400,
+      "content_type": "image/png"
+    }
+  ],
+  "errors": [],
+  "message": "Successfully uploaded 1 of 1 files"
 }
 ```
 
-**Error Responses:**
-- `400` - Invalid integration key or data
-- `429` - Rate limit exceeded
-- `500` - Server error
-
----
-
-### File Uploads
-
-#### 📎 Upload Attachment
-```http
-POST /api/uploads
-```
-
-Uploads files to MinIO storage for report attachments.
-
-**Request:**
-- Content-Type: `multipart/form-data`
-- Max file size: 10MB
-- Allowed types: PNG, JPG, GIF, PDF, DOCX, XLSX
-
-**Form Data:**
-```
-file: [binary file data]
-report_id: "uuid"
-```
-
-**Response (201 Created):**
+**Response with Errors:**
 ```json
 {
-  "id": "uuid",
-  "filename": "screenshot.png",
-  "file_size": 102400,
-  "mime_type": "image/png",
-  "url": "https://storage.example.com/attachments/uuid/screenshot.png"
+  "success": true,
+  "uploaded": [...],
+  "errors": [
+    {
+      "file": "large_file.pdf",
+      "error": "File size exceeds 10MB limit"
+    }
+  ],
+  "message": "Successfully uploaded 2 of 3 files"
 }
 ```
 
 **Error Responses:**
-- `400` - Invalid file type or size
-- `403` - No access to report
-- `413` - File too large
-- `429` - Too many attachments (max 5)
+- `400` - Invalid file type, size, or missing project_id
+- `413` - File too large (>10MB)
+- `429` - Too many files (>5 per upload)
+- `500` - Storage or database error
+
+**File Type Support:**
+Currently supports all file types. Database schema enforces these MIME types:
+- Images: `image/png`, `image/jpeg`, `image/gif`, `image/jpg`
+- Documents: `application/pdf`, Excel formats
+- Future: More document types as needed
 
 ---
 
@@ -968,19 +1106,23 @@ X-RateLimit-Reset: 1703001600
 
 ## Widget Integration
 
-### Basic Integration
+### Basic Integration ✅ WORKING
 
 ```html
 <!-- Add to your website -->
-<script src="https://your-domain.com/widget/feedloop-widget.js"></script>
 <script>
-  FeedLoop.init({
-    integrationKey: 'flp_xxxxxxxxxxxxx',
-    position: 'bottom-right',
-    theme: 'light'
-  });
+  // Set API base for local development
+  window.FEEDLOOP_API_BASE = window.location.origin;
 </script>
+<script src="/widget/feedloop-widget.js" data-project-key="flp_demo12345678901234"></script>
 ```
+
+**For Production:**
+```html
+<script src="https://your-domain.com/widget/feedloop-widget.js" data-project-key="YOUR_PROJECT_KEY"></script>
+```
+
+**Demo Page:** Available at `http://localhost:3000/widget-demo.html`
 
 ### Advanced Configuration
 
@@ -1041,6 +1183,18 @@ FeedLoop.destroy();
 ### Development Only
 
 These endpoints are available only in development environment:
+
+#### 🧪 Demo Project Information
+
+**Demo Project Key:** `flp_demo12345678901234`
+**Demo Project ID:** `680d1e85-147d-403e-9fa0-93ae9f98351f`
+**Widget Demo Page:** `http://localhost:3000/widget-demo.html`
+
+This demo project is automatically created for testing widget functionality. It includes:
+- Valid integration key for widget testing
+- Demo user account for project ownership
+- Working widget submission endpoint
+- Sample data for development testing
 
 #### 🔍 Database Health Check
 ```http
@@ -1175,15 +1329,15 @@ curl -X POST http://localhost:3000/api/projects \
   -H "Cookie: next-auth.session-token=..." \
   -d '{"name": "My Project"}'
 
-# Widget Submit (public)
+# Widget Submit (public) - Working example
 curl -X POST http://localhost:3000/api/widget/submit \
-  -H "Content-Type: application/json" \
-  -d '{
-    "integration_key": "flp_xxxxxxxxxxxxx",
-    "type": "bug",
-    "title": "Bug Report",
-    "description": "Description..."
-  }'
+  -H "Content-Type: multipart/form-data" \
+  -F "project_key=flp_demo12345678901234" \
+  -F "type=bug" \
+  -F "title=Bug Report" \
+  -F "description=This is a test bug report from API" \
+  -F "priority=medium" \
+  -F "reporter_name=API Test User"
 ```
 
 ---

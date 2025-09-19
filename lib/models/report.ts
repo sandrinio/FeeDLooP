@@ -139,7 +139,7 @@ export const AttachmentReferenceSchema = z.object({
 // Widget Report Creation Schema (for /api/widget/submit)
 export const CreateWidgetReportSchema = z.object({
   project_key: z.string()
-    .regex(/^flp_[a-zA-Z0-9]{16,32}$/, 'Invalid project key format'),
+    .regex(/^[a-zA-Z0-9]{16,32}$/, 'Invalid project key format'),
 
   type: ReportTypeSchema,
 
@@ -152,10 +152,12 @@ export const CreateWidgetReportSchema = z.object({
     .max(5000, 'Description must be less than 5000 characters'),
 
   user_info: UserInfoSchema
-    .optional(),
+    .optional()
+    .nullable(),
 
   diagnostic_data: DiagnosticDataSchema
-    .optional(),
+    .optional()
+    .nullable(),
 
   attachments: z.array(AttachmentReferenceSchema)
     .max(5, 'Maximum 5 attachments per report')
