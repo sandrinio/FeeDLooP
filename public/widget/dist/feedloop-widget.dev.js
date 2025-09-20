@@ -1,6 +1,6 @@
 
-// FeeDLooP Widget v0.1.0 (Build: mfs55fu6)
-// Built on: 2025-09-20T10:44:09.971Z
+// FeeDLooP Widget v0.1.0 (Build: mfsckfj9)
+// Built on: 2025-09-20T14:11:46.734Z
 // For more info: https://feedloop.com
 
 (function() {
@@ -28,6 +28,15 @@
     } else if (window.location.hostname === 'localhost' && window.location.port === '3000') {
       // Development: API server is likely on port 3001
       WIDGET_API_BASE = 'http://localhost:3001';
+    } else {
+      // Production: Detect if widget is loaded from feedloop.soula.ge
+      const scripts = document.getElementsByTagName('script');
+      for (let script of scripts) {
+        if (script.src && script.src.includes('feedloop.soula.ge')) {
+          WIDGET_API_BASE = 'https://feedloop.soula.ge';
+          break;
+        }
+      }
     }
   }
 
