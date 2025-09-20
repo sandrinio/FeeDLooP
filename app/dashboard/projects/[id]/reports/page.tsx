@@ -1,7 +1,7 @@
 /**
- * Project Reports Page
- * T080: Reports page implementation
- * Shows list of reports with filtering and search
+ * Enhanced Reports Dashboard - Redesigned per specs/002-reports-page-modification
+ * Table columns: Title, URL, Priority, Submitted (no Status column)
+ * Features: Hover tooltips, export functionality, filtering capabilities
  */
 
 'use client'
@@ -17,18 +17,40 @@ import {
   ChatBubbleLeftEllipsisIcon,
   LightBulbIcon,
   ChevronLeftIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  DocumentArrowDownIcon,
+  CodeBracketIcon,
+  WifiIcon
 } from '@heroicons/react/24/outline'
 
 interface Report {
   id: string
+  project_id: string
+  type: 'bug' | 'initiative' | 'feedback'
   title: string
   description: string
-  type: 'bug' | 'feature' | 'feedback'
-  status: 'new' | 'in_progress' | 'resolved' | 'closed'
-  priority: 'low' | 'medium' | 'high' | 'critical'
-  user_email?: string
-  user_name?: string
+  status: 'active' | 'archived'
+  priority: 'low' | 'medium' | 'high' | 'critical' | null
+  reporter_email?: string | null
+  reporter_name?: string | null
+  url?: string | null
+  user_agent?: string | null
+  console_logs?: Array<{
+    type: 'log' | 'warn' | 'error'
+    message: string
+    timestamp: string
+    stack?: string
+    level?: number
+  }> | null
+  network_requests?: Array<{
+    url: string
+    method: string
+    status: number
+    duration: number
+    timestamp: string
+    size?: number
+    headers?: Record<string, string>
+  }> | null
   created_at: string
   updated_at: string
   fl_attachments?: Array<{
@@ -47,7 +69,6 @@ interface ReportsResponse {
     pages: number
   }
   filters: {
-    status?: string
     type?: string
     priority?: string
   }
@@ -68,23 +89,24 @@ export default function ProjectReportsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Filter states
-  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || '')
+  // Enhanced filter states per data-model.md
   const [typeFilter, setTypeFilter] = useState(searchParams.get('type') || '')
   const [priorityFilter, setPriorityFilter] = useState(searchParams.get('priority') || '')
   const [searchQuery, setSearchQuery] = useState('')
+  const [showFilters, setShowFilters] = useState(true)
+  const [exportMode, setExportMode] = useState(false)
+  const [selectedReports, setSelectedReports] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (projectId) {
       fetchReports()
     }
-  }, [projectId, statusFilter, typeFilter, priorityFilter, pagination.page])
+  }, [projectId, typeFilter, priorityFilter, pagination.page])
 
   const fetchReports = async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams()
-      if (statusFilter) params.append('status', statusFilter)
       if (typeFilter) params.append('type', typeFilter)
       if (priorityFilter) params.append('priority', priorityFilter)
       params.append('page', pagination.page.toString())
@@ -109,7 +131,7 @@ export default function ProjectReportsPage() {
     switch (type) {
       case 'bug':
         return <ExclamationTriangleIcon className="h-5 w-5 text-red-500" />
-      case 'feature':
+      case 'initiative':
         return <LightBulbIcon className="h-5 w-5 text-blue-500" />
       case 'feedback':
         return <ChatBubbleLeftEllipsisIcon className="h-5 w-5 text-green-500" />
@@ -118,23 +140,7 @@ export default function ProjectReportsPage() {
     }
   }
 
-  const getStatusBadge = (status: string) => {
-    const baseClasses = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-    switch (status) {
-      case 'new':
-        return `${baseClasses} bg-blue-100 text-blue-800`
-      case 'in_progress':
-        return `${baseClasses} bg-yellow-100 text-yellow-800`
-      case 'resolved':
-        return `${baseClasses} bg-green-100 text-green-800`
-      case 'closed':
-        return `${baseClasses} bg-gray-100 text-gray-800`
-      default:
-        return `${baseClasses} bg-gray-100 text-gray-800`
-    }
-  }
-
-  const getPriorityBadge = (priority: string) => {
+  const getPriorityBadge = (priority: string | null) => {
     const baseClasses = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
     switch (priority) {
       case 'critical':
@@ -151,102 +157,198 @@ export default function ProjectReportsPage() {
   }
 
   const clearFilters = () => {
-    setStatusFilter('')
     setTypeFilter('')
     setPriorityFilter('')
+    setSearchQuery('')
     setPagination(prev => ({ ...prev, page: 1 }))
+  }
+
+  const handleExportSelected = async () => {
+    if (selectedReports.size === 0) {
+      alert('Please select at least one report to export')
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/reports/export`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reportIds: Array.from(selectedReports),
+          format: 'csv'
+        })
+      })
+
+      if (response.ok) {
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.style.display = 'none'
+        a.href = url
+        a.download = `reports-export-${new Date().toISOString().split('T')[0]}.csv`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        setExportMode(false)
+        setSelectedReports(new Set())
+      } else {
+        alert('Export failed. Please try again.')
+      }
+    } catch (error) {
+      alert('Export failed. Please try again.')
+    }
+  }
+
+  const toggleReportSelection = (reportId: string) => {
+    const newSelected = new Set(selectedReports)
+    if (newSelected.has(reportId)) {
+      newSelected.delete(reportId)
+    } else {
+      newSelected.add(reportId)
+    }
+    setSelectedReports(newSelected)
   }
 
   const filteredReports = reports.filter(report =>
     searchQuery === '' ||
     report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    report.description.toLowerCase().includes(searchQuery.toLowerCase())
+    report.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    report.reporter_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    report.reporter_email?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Header */}
+      {/* Enhanced Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Project Reports</h1>
-        <p className="text-gray-600">
-          Manage and track user feedback, bug reports, and feature requests.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Enhanced Reports Dashboard</h1>
+            <p className="text-gray-600">
+              Advanced data table with filtering, hover descriptions, and CSV export capabilities.
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
+            {exportMode && selectedReports.size > 0 && (
+              <button
+                onClick={handleExportSelected}
+                className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
+              >
+                Export {selectedReports.size} Selected
+              </button>
+            )}
+            <button
+              onClick={() => setExportMode(!exportMode)}
+              className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                exportMode
+                  ? 'bg-red-600 text-white hover:bg-red-700'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
+              data-testid="export-button"
+            >
+              <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
+              {exportMode ? 'Exit Export Mode' : 'Export Reports'}
+            </button>
+          </div>
+        </div>
+        <div className="mt-4 flex items-center space-x-4">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+            <CodeBracketIcon className="h-4 w-4 mr-1" />
+            Console Logs Available
+          </span>
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+            <WifiIcon className="h-4 w-4 mr-1" />
+            Network Requests Tracked
+          </span>
+        </div>
       </div>
 
-      {/* Filters and Search */}
-      <div className="bg-white shadow rounded-lg mb-6">
+      {/* Enhanced Filters and Search */}
+      <div className="bg-white shadow-lg rounded-lg mb-6 border-l-4 border-blue-500" data-testid="filters">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-medium text-gray-900 flex items-center">
-              <FunnelIcon className="h-5 w-5 mr-2" />
-              Filters
+              <FunnelIcon className="h-5 w-5 mr-2 text-blue-500" />
+              Enhanced Filters & Export
             </h2>
-            {(statusFilter || typeFilter || priorityFilter) && (
+            <div className="flex items-center space-x-3">
+              {(typeFilter || priorityFilter || searchQuery) && (
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-blue-600 hover:text-blue-500 transition-colors"
+                  data-testid="clear-filters"
+                >
+                  Clear filters
+                </button>
+              )}
               <button
-                onClick={clearFilters}
-                className="text-sm text-blue-600 hover:text-blue-500"
+                onClick={() => setShowFilters(!showFilters)}
+                className="text-sm text-gray-600 hover:text-gray-500 transition-colors"
+                data-testid="toggle-filters"
               >
-                Clear filters
+                {showFilters ? 'Hide' : 'Show'} Filters
               </button>
-            )}
-          </div>
-        </div>
-        <div className="px-6 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-            {/* Search */}
-            <div className="relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search reports..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
             </div>
-
-            {/* Status Filter */}
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">All Statuses</option>
-              <option value="new">New</option>
-              <option value="in_progress">In Progress</option>
-              <option value="resolved">Resolved</option>
-              <option value="closed">Closed</option>
-            </select>
-
-            {/* Type Filter */}
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">All Types</option>
-              <option value="bug">Bug Report</option>
-              <option value="feature">Feature Request</option>
-              <option value="feedback">General Feedback</option>
-            </select>
-
-            {/* Priority Filter */}
-            <select
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">All Priorities</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
           </div>
         </div>
+
+        {showFilters && (
+          <div className="px-6 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+              {/* Search */}
+              <div className="relative">
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search reports..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  name="filter-title"
+                />
+              </div>
+
+              {/* Type Filter */}
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                name="filter-type"
+                data-testid="type-filter"
+              >
+                <option value="">All Types</option>
+                <option value="bug">Bug Report</option>
+                <option value="initiative">Initiative</option>
+                <option value="feedback">General Feedback</option>
+              </select>
+
+              {/* Priority Filter */}
+              <select
+                value={priorityFilter}
+                onChange={(e) => setPriorityFilter(e.target.value)}
+                className="border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                name="filter-priority"
+                data-testid="priority-filter"
+              >
+                <option value="">All Priorities</option>
+                <option value="critical">Critical</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+
+              {/* Placeholder for future date filter */}
+              <div className="flex items-center text-sm text-gray-400">
+                Date range filter (coming soon)
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Reports List */}
+      {/* Enhanced Reports Table */}
       <div className="bg-white shadow rounded-lg">
         {loading ? (
           <div className="flex items-center justify-center h-64">
@@ -269,24 +371,37 @@ export default function ProjectReportsPage() {
           </div>
         ) : (
           <>
-            {/* Reports Table */}
+            {/* Enhanced Reports Table per spec */}
             <div className="overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-gray-200" data-testid="reports-table">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Report
+                    {exportMode && (
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <input
+                          type="checkbox"
+                          checked={selectedReports.size === filteredReports.length && filteredReports.length > 0}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedReports(new Set(filteredReports.map(r => r.id)))
+                            } else {
+                              setSelectedReports(new Set())
+                            }
+                          }}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                      </th>
+                    )}
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column="title">
+                      Title
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Type
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column="url">
+                      URL
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column="priority">
                       Priority
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column="created_at">
                       Submitted
                     </th>
                     <th className="relative px-6 py-3">
@@ -296,8 +411,20 @@ export default function ProjectReportsPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredReports.map((report) => (
-                    <tr key={report.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
+                    <tr key={report.id} className="hover:bg-gray-50 transition-colors">
+                      {exportMode && (
+                        <td className="px-6 py-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedReports.has(report.id)}
+                            onChange={() => toggleReportSelection(report.id)}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                        </td>
+                      )}
+
+                      {/* Title Column */}
+                      <td className="px-6 py-4" data-column="title">
                         <div className="flex items-start">
                           <div className="flex-shrink-0 mr-3 mt-1">
                             {getTypeIcon(report.type)}
@@ -305,45 +432,86 @@ export default function ProjectReportsPage() {
                           <div className="min-w-0 flex-1">
                             <Link
                               href={`/dashboard/projects/${projectId}/reports/${report.id}`}
-                              className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                              className="text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors report-title-link"
+                              title={`${report.title}\n\n${report.description}`}
+                              data-report-id={report.id}
                             >
-                              {report.title}
+                              {report.title.length > 50
+                                ? `${report.title.substring(0, 50)}...`
+                                : report.title}
                             </Link>
-                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                              {report.description.length > 100
-                                ? `${report.description.substring(0, 100)}...`
-                                : report.description}
-                            </p>
-                            {report.user_name && (
+                            {report.reporter_name && (
                               <p className="text-xs text-gray-400 mt-1">
-                                by {report.user_name}
+                                by {report.reporter_name}
                               </p>
                             )}
+                            <div className="flex items-center space-x-2 mt-1">
+                              <span className="text-xs text-gray-900 capitalize font-medium bg-gray-100 px-2 py-1 rounded" data-testid="type-badge">
+                                {report.type}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900 capitalize">
-                          {report.type}
-                        </span>
+
+                      {/* URL Column */}
+                      <td className="px-6 py-4 whitespace-nowrap" data-column="url">
+                        {report.url ? (
+                          <a
+                            href={report.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-900 transition-colors"
+                            title={report.url}
+                          >
+                            {(() => {
+                              try {
+                                const domain = new URL(report.url).hostname;
+                                return domain.length > 30 ? `${domain.substring(0, 30)}...` : domain;
+                              } catch {
+                                return report.url.length > 30 ? `${report.url.substring(0, 30)}...` : report.url;
+                              }
+                            })()}
+                          </a>
+                        ) : (
+                          <span className="text-sm text-gray-400">No URL</span>
+                        )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={getStatusBadge(report.status)}>
-                          {report.status.replace('_', ' ')}
-                        </span>
+
+                      {/* Priority Column */}
+                      <td className="px-6 py-4 whitespace-nowrap" data-column="priority">
+                        {report.priority ? (
+                          <span className={getPriorityBadge(report.priority)} data-testid="priority-badge">
+                            {report.priority}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800" data-testid="priority-badge">
+                            Not Set
+                          </span>
+                        )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={getPriorityBadge(report.priority)}>
-                          {report.priority}
-                        </span>
+
+                      {/* Submitted Column */}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-column="created_at" title={new Date(report.created_at).toLocaleString()}>
+                        {(() => {
+                          const date = new Date(report.created_at);
+                          const now = new Date();
+                          const diffInMs = now.getTime() - date.getTime();
+                          const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+                          const diffInDays = Math.floor(diffInHours / 24);
+
+                          if (diffInHours < 1) return 'Just now';
+                          if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+                          if (diffInDays < 7) return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+                          return date.toLocaleDateString();
+                        })()}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(report.created_at).toLocaleDateString()}
-                      </td>
+
+                      {/* Actions Column */}
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <Link
                           href={`/dashboard/projects/${projectId}/reports/${report.id}`}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-blue-600 hover:text-blue-900 transition-colors"
                         >
                           View
                         </Link>
