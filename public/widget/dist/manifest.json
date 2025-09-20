@@ -2,12 +2,12 @@
   "name": "FeeDLooP Widget",
   "version": "0.1.0",
   "description": "Embeddable feedback collection widget",
-  "buildTime": "2025-09-20T14:11:46.733Z",
+  "buildTime": "2025-09-20T14:24:59.966Z",
   "files": {
     "production": {
       "main": "feedloop-widget.min.js",
-      "size": 42009,
-      "integrity": "sha384-i9SYT0dUJG5gShLEfSw5Rb3scaK55KwGR4IlxYAHbLgBcCSp91TzdP1/RdXc5wWw"
+      "size": 42077,
+      "integrity": "sha384-VX/aLvpiKAyBIrPjy8MW4tu+RuJPyZCsITi3dFL96nhnJHPEg1xEyYhayXyOHh4n"
     },
     "development": {
       "main": "feedloop-widget.dev.js"

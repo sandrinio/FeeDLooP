@@ -184,6 +184,13 @@
         checkWidgetStatus();
     </script>
 
+    <!-- Force production API for testing -->
+    <script>
+        // Override API base to use production even on localhost
+        window.FEEDLOOP_API_BASE = 'https://feedloop.soula.ge';
+        console.log('Forced API base to:', window.FEEDLOOP_API_BASE);
+    </script>
+
     <!-- Load the production widget -->
     <script
         src="https://feedloop.soula.ge/widget/dist/feedloop-widget.min.js"

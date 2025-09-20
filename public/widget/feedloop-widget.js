@@ -14,18 +14,23 @@
   let WIDGET_API_BASE = '';
   if (typeof window !== 'undefined') {
     if (window.FEEDLOOP_API_BASE) {
+      // Allow explicit override
       WIDGET_API_BASE = window.FEEDLOOP_API_BASE;
-    } else if (window.location.hostname === 'localhost' && window.location.port === '3000') {
-      // Development: API server is likely on port 3001
-      WIDGET_API_BASE = 'http://localhost:3001';
     } else {
-      // Production: Detect if widget is loaded from feedloop.soula.ge
+      // First check if widget is loaded from production CDN
       const scripts = document.getElementsByTagName('script');
+      let isProductionWidget = false;
       for (let script of scripts) {
         if (script.src && script.src.includes('feedloop.soula.ge')) {
           WIDGET_API_BASE = 'https://feedloop.soula.ge';
+          isProductionWidget = true;
           break;
         }
+      }
+
+      // Only use localhost API if widget is NOT from production AND we're on localhost:3000
+      if (!isProductionWidget && window.location.hostname === 'localhost' && window.location.port === '3000') {
+        WIDGET_API_BASE = 'http://localhost:3001';
       }
     }
   }

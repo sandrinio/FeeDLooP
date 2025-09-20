@@ -1,0 +1,10 @@
+<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="10.141999">
+<testsuite name="widget-production.spec.ts" timestamp="2025-09-20T14:18:54.285Z" hostname="chromium" tests="1" failures="0" skipped="0" time="5.263" errors="0">
+<testcase name="Production Widget Tests › production widget loads and submits feedback successfully" classname="widget-production.spec.ts" time="5.263">
+<system-out>
+<![CDATA[✅ Production widget test completed successfully
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>
