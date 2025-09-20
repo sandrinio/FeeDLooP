@@ -18,6 +18,15 @@
     } else if (window.location.hostname === 'localhost' && window.location.port === '3000') {
       // Development: API server is likely on port 3001
       WIDGET_API_BASE = 'http://localhost:3001';
+    } else {
+      // Production: Detect if widget is loaded from feedloop.soula.ge
+      const scripts = document.getElementsByTagName('script');
+      for (let script of scripts) {
+        if (script.src && script.src.includes('feedloop.soula.ge')) {
+          WIDGET_API_BASE = 'https://feedloop.soula.ge';
+          break;
+        }
+      }
     }
   }
 

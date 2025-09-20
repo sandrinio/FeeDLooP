@@ -1,0 +1,367 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - heading "🚀 FeeDLooP Widget - Production Test" [level=1] [ref=e2]
+  - generic [ref=e3]:
+    - heading "Widget Status" [level=2] [ref=e4]
+    - generic [ref=e5]: ✅ Widget loaded successfully!
+    - heading "Test Actions" [level=3] [ref=e6]
+    - button "Open Widget" [ref=e7] [cursor=pointer]
+    - button "Test Widget API" [ref=e8] [cursor=pointer]
+    - button "Generate Test Data" [ref=e9] [cursor=pointer]
+    - button "Clear Console" [ref=e10] [cursor=pointer]
+  - generic [ref=e11]:
+    - heading "Console Output" [level=2] [ref=e12]
+    - generic [ref=e13]:
+      - text: Console logs will appear here...
+      - generic [ref=e14]:
+        - generic [ref=e15]: "[2:58:06 PM]"
+        - generic [ref=e16]: "[INFO]"
+        - text: Demo page loaded - waiting for widget...
+      - generic [ref=e17]:
+        - generic [ref=e18]: "[2:58:06 PM]"
+        - generic [ref=e19]: "[LOG]"
+        - text: FeeDLooP Debug:Script tag detection
+      - generic [ref=e20]:
+        - generic [ref=e21]: "[2:58:06 PM]"
+        - generic [ref=e22]: "[LOG]"
+        - text: "-document.currentScript: {}"
+      - generic [ref=e23]:
+        - generic [ref=e24]: "[2:58:06 PM]"
+        - generic [ref=e25]: "[LOG]"
+        - text: "-querySelector result: {}"
+      - generic [ref=e26]:
+        - generic [ref=e27]: "[2:58:06 PM]"
+        - generic [ref=e28]: "[LOG]"
+        - text: "-SCRIPT_TAG: {}"
+      - generic [ref=e29]:
+        - generic [ref=e30]: "[2:58:06 PM]"
+        - generic [ref=e31]: "[LOG]"
+        - text: "-PROJECT_KEY extracted: qqa6gF2deJypP3VKEYODxu31yQLaygYz"
+      - generic [ref=e32]:
+        - generic [ref=e33]: "[2:58:06 PM]"
+        - generic [ref=e34]: "[LOG]"
+        - text: "-SCRIPT_NONCE extracted: null"
+      - generic [ref=e35]:
+        - generic [ref=e36]: "[2:58:06 PM]"
+        - generic [ref=e37]: "[LOG]"
+        - text: Widget script loaded
+      - generic [ref=e38]:
+        - generic [ref=e39]: "[2:58:06 PM]"
+        - generic [ref=e40]: "[LOG]"
+        - text: FeeDLooP Debug:initWidget called
+      - generic [ref=e41]:
+        - generic [ref=e42]: "[2:58:06 PM]"
+        - generic [ref=e43]: "[LOG]"
+        - text: "-widgetState.projectKey: qqa6gF2deJypP3VKEYODxu31yQLaygYz"
+      - generic [ref=e44]:
+        - generic [ref=e45]: "[2:58:06 PM]"
+        - generic [ref=e46]: "[LOG]"
+        - text: "-All script tags with data-project-key: { \"0\": {} }"
+      - generic [ref=e47]:
+        - generic [ref=e48]: "[2:58:06 PM]"
+        - generic [ref=e49]: "[LOG]"
+        - text: "FeeDLooP Debug:Project key successfully loaded: qqa6gF2deJypP3VKEYODxu31yQLaygYz"
+      - generic [ref=e50]:
+        - generic [ref=e51]: "[2:58:08 PM]"
+        - generic [ref=e52]: "[INFO]"
+        - text: FeeDLooP Widget loaded successfully
+      - generic [ref=e53]:
+        - generic [ref=e54]: "[2:58:09 PM]"
+        - generic [ref=e55]: "[LOG]"
+        - text: FeeDLooP Debug:gatherFormData called
+      - generic [ref=e56]:
+        - generic [ref=e57]: "[2:58:09 PM]"
+        - generic [ref=e58]: "[LOG]"
+        - text: "-widgetState.projectKey at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz"
+      - generic [ref=e59]:
+        - generic [ref=e60]: "[2:58:09 PM]"
+        - generic [ref=e61]: "[LOG]"
+        - text: "-SCRIPT_TAG at form submission: {}"
+      - generic [ref=e62]:
+        - generic [ref=e63]: "[2:58:09 PM]"
+        - generic [ref=e64]: "[LOG]"
+        - text: "-PROJECT_KEY at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz"
+      - generic [ref=e65]:
+        - generic [ref=e66]: "[2:58:09 PM]"
+        - generic [ref=e67]: "[LOG]"
+        - text: "-widgetState object: { \"isOpen\": true, \"isMinimized\": false, \"projectKey\": \"qqa6gF2deJypP3VKEYODxu31yQLaygYz\", \"reportType\": \"bug\", \"attachments\": [], \"formData\": { \"title\": \"\", \"description\": \"\", \"reporter_name\": \"\", \"reporter_email\": \"\", \"priority\": \"medium\" }, \"diagnosticData\": { \"url\": \"http://localhost:3000/demo-production.html\", \"userAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36\", \"screenResolution\": \"1280x720\", \"windowSize\": \"1280x720\", \"language\": \"en-US\", \"platform\": \"MacIntel\", \"consoleLogs\": [ { \"type\": \"log\", \"message\": \"FeeDLooP Debug:gatherFormData called\", \"timestamp\": \"2025-09-20T10:58:09.971Z\" }, { \"type\": \"log\", \"message\": \"-widgetState.projectKey at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\", \"timestamp\": \"2025-09-20T10:58:09.972Z\" }, { \"type\": \"log\", \"message\": \"-SCRIPT_TAG at form submission: {}\", \"timestamp\": \"2025-09-20T10:58:09.972Z\" }, { \"type\": \"log\", \"message\": \"-PROJECT_KEY at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\", \"timestamp\": \"2025-09-20T10:58:09.973Z\" }, { \"type\": \"log\", \"message\": \"-widgetState object: {\\\"isOpen\\\":true,\\\"isMinimized\\\":false,\\\"projectKey\\\":\\\"qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"reportType\\\":\\\"bug\\\",\\\"attachments\\\":[],\\\"formData\\\":{\\\"title\\\":\\\"\\\",\\\"description\\\":\\\"\\\",\\\"reporter_name\\\":\\\"\\\",\\\"reporter_email\\\":\\\"\\\",\\\"priority\\\":\\\"medium\\\"},\\\"diagnosticData\\\":{\\\"url\\\":\\\"http://localhost:3000/demo-production.html\\\",\\\"userAgent\\\":\\\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36\\\",\\\"screenResolution\\\":\\\"1280x720\\\",\\\"windowSize\\\":\\\"1280x720\\\",\\\"language\\\":\\\"en-US\\\",\\\"platform\\\":\\\"MacIntel\\\",\\\"consoleLogs\\\":[{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"FeeDLooP Debug:gatherFormData called\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.971Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-widgetState.projectKey at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.972Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-SCRIPT_TAG at form submission: {}\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.972Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-PROJECT_KEY at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.973Z\\\"}],\\\"networkRequests\\\":[{\\\"name\\\":\\\"https://feedloop.soula.ge/widget/dist/feedloop-widget.min.js\\\",\\\"duration\\\":335,\\\"size\\\":0,\\\"type\\\":\\\"script\\\"}]}}\", \"timestamp\": \"2025-09-20T10:58:09.973Z\" } ], \"networkRequests\": [ { \"name\": \"https://feedloop.soula.ge/widget/dist/feedloop-widget.min.js\", \"duration\": 335, \"size\": 0, \"type\": \"script\" } ] } }"
+      - generic [ref=e68]:
+        - generic [ref=e69]: "[2:58:09 PM]"
+        - generic [ref=e70]: "[LOG]"
+        - text: "FeeDLooP Debug:Final form data object: { \"project_key\": \"qqa6gF2deJypP3VKEYODxu31yQLaygYz\", \"type\": \"bug\", \"title\": \"Production Test Report\", \"description\": \"This is a test submission from the production widget test suite.\", \"priority\": \"medium\", \"reporter_name\": \"Production Tester\", \"reporter_email\": \"production@test.com\", \"url\": \"http://localhost:3000/demo-production.html\", \"user_agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36\", \"console_logs\": [ { \"type\": \"log\", \"message\": \"-PROJECT_KEY at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\", \"timestamp\": \"2025-09-20T10:58:09.973Z\" }, { \"type\": \"log\", \"message\": \"-widgetState object: {\\\"isOpen\\\":true,\\\"isMinimized\\\":false,\\\"projectKey\\\":\\\"qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"reportType\\\":\\\"bug\\\",\\\"attachments\\\":[],\\\"formData\\\":{\\\"title\\\":\\\"\\\",\\\"description\\\":\\\"\\\",\\\"reporter_name\\\":\\\"\\\",\\\"reporter_email\\\":\\\"\\\",\\\"priority\\\":\\\"medium\\\"},\\\"diagnosticData\\\":{\\\"url\\\":\\\"http://localhost:3000/demo-production.html\\\",\\\"userAgent\\\":\\\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36\\\",\\\"screenResolution\\\":\\\"1280x720\\\",\\\"windowSize\\\":\\\"1280x720\\\",\\\"language\\\":\\\"en-US\\\",\\\"platform\\\":\\\"MacIntel\\\",\\\"consoleLogs\\\":[{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"FeeDLooP Debug:gatherFormData called\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.971Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-widgetState.projectKey at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.972Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-SCRIPT_TAG at form submission: {}\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.972Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-PROJECT_KEY at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"timestamp\\\":\", \"timestamp\": \"2025-09-20T10:58:09.973Z\" }, { \"type\": \"log\", \"message\": \"-widgetState.projectKey at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\", \"timestamp\": \"2025-09-20T10:58:09.972Z\" }, { \"type\": \"log\", \"message\": \"-SCRIPT_TAG at form submission: {}\", \"timestamp\": \"2025-09-20T10:58:09.972Z\" }, { \"type\": \"log\", \"message\": \"FeeDLooP Debug:gatherFormData called\", \"timestamp\": \"2025-09-20T10:58:09.971Z\" } ], \"network_requests\": [ { \"name\": \"https://feedloop.soula.ge/widget/dist/feedloop-widget.min.js\", \"duration\": 335, \"size\": 0, \"type\": \"script\" } ], \"attachments\": [] }"
+      - generic [ref=e71]:
+        - generic [ref=e72]: "[2:58:09 PM]"
+        - generic [ref=e73]: "[LOG]"
+        - text: "FeeDLooP Debug:project_key in formData: qqa6gF2deJypP3VKEYODxu31yQLaygYz"
+      - generic [ref=e74]:
+        - generic [ref=e75]: "[2:58:09 PM]"
+        - generic [ref=e76]: "[LOG]"
+        - text: FeeDLooP Debug:submitFeedback called
+      - generic [ref=e77]:
+        - generic [ref=e78]: "[2:58:09 PM]"
+        - generic [ref=e79]: "[LOG]"
+        - text: "-Input data: { \"project_key\": \"qqa6gF2deJypP3VKEYODxu31yQLaygYz\", \"type\": \"bug\", \"title\": \"Production Test Report\", \"description\": \"This is a test submission from the production widget test suite.\", \"priority\": \"medium\", \"reporter_name\": \"Production Tester\", \"reporter_email\": \"production@test.com\", \"url\": \"http://localhost:3000/demo-production.html\", \"user_agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36\", \"console_logs\": [ { \"type\": \"log\", \"message\": \"-PROJECT_KEY at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\", \"timestamp\": \"2025-09-20T10:58:09.973Z\" }, { \"type\": \"log\", \"message\": \"-widgetState object: {\\\"isOpen\\\":true,\\\"isMinimized\\\":false,\\\"projectKey\\\":\\\"qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"reportType\\\":\\\"bug\\\",\\\"attachments\\\":[],\\\"formData\\\":{\\\"title\\\":\\\"\\\",\\\"description\\\":\\\"\\\",\\\"reporter_name\\\":\\\"\\\",\\\"reporter_email\\\":\\\"\\\",\\\"priority\\\":\\\"medium\\\"},\\\"diagnosticData\\\":{\\\"url\\\":\\\"http://localhost:3000/demo-production.html\\\",\\\"userAgent\\\":\\\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36\\\",\\\"screenResolution\\\":\\\"1280x720\\\",\\\"windowSize\\\":\\\"1280x720\\\",\\\"language\\\":\\\"en-US\\\",\\\"platform\\\":\\\"MacIntel\\\",\\\"consoleLogs\\\":[{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"FeeDLooP Debug:gatherFormData called\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.971Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-widgetState.projectKey at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.972Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-SCRIPT_TAG at form submission: {}\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.972Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-PROJECT_KEY at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"timestamp\\\":\", \"timestamp\": \"2025-09-20T10:58:09.973Z\" }, { \"type\": \"log\", \"message\": \"-widgetState.projectKey at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\", \"timestamp\": \"2025-09-20T10:58:09.972Z\" }, { \"type\": \"log\", \"message\": \"-SCRIPT_TAG at form submission: {}\", \"timestamp\": \"2025-09-20T10:58:09.972Z\" }, { \"type\": \"log\", \"message\": \"FeeDLooP Debug:gatherFormData called\", \"timestamp\": \"2025-09-20T10:58:09.971Z\" } ], \"network_requests\": [ { \"name\": \"https://feedloop.soula.ge/widget/dist/feedloop-widget.min.js\", \"duration\": 335, \"size\": 0, \"type\": \"script\" } ], \"attachments\": [] }"
+      - generic [ref=e80]:
+        - generic [ref=e81]: "[2:58:09 PM]"
+        - generic [ref=e82]: "[LOG]"
+        - text: "-WIDGET_API_BASE: http://localhost:3001"
+      - generic [ref=e83]:
+        - generic [ref=e84]: "[2:58:09 PM]"
+        - generic [ref=e85]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field project_key: qqa6gF2deJypP3VKEYODxu31yQLaygYz"
+      - generic [ref=e86]:
+        - generic [ref=e87]: "[2:58:09 PM]"
+        - generic [ref=e88]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field type: bug"
+      - generic [ref=e89]:
+        - generic [ref=e90]: "[2:58:09 PM]"
+        - generic [ref=e91]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field title: Production Test Report"
+      - generic [ref=e92]:
+        - generic [ref=e93]: "[2:58:09 PM]"
+        - generic [ref=e94]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field description: This is a test submission from the production widget test suite."
+      - generic [ref=e95]:
+        - generic [ref=e96]: "[2:58:09 PM]"
+        - generic [ref=e97]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field priority: medium"
+      - generic [ref=e98]:
+        - generic [ref=e99]: "[2:58:09 PM]"
+        - generic [ref=e100]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field reporter_name: Production Tester"
+      - generic [ref=e101]:
+        - generic [ref=e102]: "[2:58:09 PM]"
+        - generic [ref=e103]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field reporter_email: production@test.com"
+      - generic [ref=e104]:
+        - generic [ref=e105]: "[2:58:09 PM]"
+        - generic [ref=e106]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field url: http://localhost:3000/demo-production.html"
+      - generic [ref=e107]:
+        - generic [ref=e108]: "[2:58:09 PM]"
+        - generic [ref=e109]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36"
+      - generic [ref=e110]:
+        - generic [ref=e111]: "[2:58:09 PM]"
+        - generic [ref=e112]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field console_logs: [{\"type\":\"log\",\"message\":\"-PROJECT_KEY at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\",\"timestamp\":\"2025-09-20T10:58:09.973Z\"},{\"type\":\"log\",\"message\":\"-widgetState object: {\\\"isOpen\\\":true,\\\"isMinimized\\\":false,\\\"projectKey\\\":\\\"qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"reportType\\\":\\\"bug\\\",\\\"attachments\\\":[],\\\"formData\\\":{\\\"title\\\":\\\"\\\",\\\"description\\\":\\\"\\\",\\\"reporter_name\\\":\\\"\\\",\\\"reporter_email\\\":\\\"\\\",\\\"priority\\\":\\\"medium\\\"},\\\"diagnosticData\\\":{\\\"url\\\":\\\"http://localhost:3000/demo-production.html\\\",\\\"userAgent\\\":\\\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36\\\",\\\"screenResolution\\\":\\\"1280x720\\\",\\\"windowSize\\\":\\\"1280x720\\\",\\\"language\\\":\\\"en-US\\\",\\\"platform\\\":\\\"MacIntel\\\",\\\"consoleLogs\\\":[{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"FeeDLooP Debug:gatherFormData called\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.971Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-widgetState.projectKey at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.972Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-SCRIPT_TAG at form submission: {}\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.972Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-PROJECT_KEY at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"timestamp\\\":\",\"timestamp\":\"2025-09-20T10:58:09.973Z\"},{\"type\":\"log\",\"message\":\"-widgetState.projectKey at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\",\"timestamp\":\"2025-09-20T10:58:09.972Z\"},{\"type\":\"log\",\"message\":\"-SCRIPT_TAG at form submission: {}\",\"timestamp\":\"2025-09-20T10:58:09.972Z\"},{\"type\":\"log\",\"message\":\"FeeDLooP Debug:gatherFormData called\",\"timestamp\":\"2025-09-20T10:58:09.971Z\"}]"
+      - generic [ref=e113]:
+        - generic [ref=e114]: "[2:58:09 PM]"
+        - generic [ref=e115]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field network_requests: [{\"name\":\"https://feedloop.soula.ge/widget/dist/feedloop-widget.min.js\",\"duration\":335,\"size\":0,\"type\":\"script\"}]"
+      - generic [ref=e116]:
+        - generic [ref=e117]: "[2:58:09 PM]"
+        - generic [ref=e118]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field project_key: qqa6gF2deJypP3VKEYODxu31yQLaygYz"
+      - generic [ref=e119]:
+        - generic [ref=e120]: "[2:58:09 PM]"
+        - generic [ref=e121]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field type: bug"
+      - generic [ref=e122]:
+        - generic [ref=e123]: "[2:58:09 PM]"
+        - generic [ref=e124]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field title: Production Test Report"
+      - generic [ref=e125]:
+        - generic [ref=e126]: "[2:58:09 PM]"
+        - generic [ref=e127]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field description: This is a test submission from the production widget test suite."
+      - generic [ref=e128]:
+        - generic [ref=e129]: "[2:58:09 PM]"
+        - generic [ref=e130]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field priority: medium"
+      - generic [ref=e131]:
+        - generic [ref=e132]: "[2:58:09 PM]"
+        - generic [ref=e133]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field reporter_name: Production Tester"
+      - generic [ref=e134]:
+        - generic [ref=e135]: "[2:58:09 PM]"
+        - generic [ref=e136]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field reporter_email: production@test.com"
+      - generic [ref=e137]:
+        - generic [ref=e138]: "[2:58:09 PM]"
+        - generic [ref=e139]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field url: http://localhost:3000/demo-production.html"
+      - generic [ref=e140]:
+        - generic [ref=e141]: "[2:58:09 PM]"
+        - generic [ref=e142]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36"
+      - generic [ref=e143]:
+        - generic [ref=e144]: "[2:58:09 PM]"
+        - generic [ref=e145]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field console_logs: [{\"type\":\"log\",\"message\":\"-PROJECT_KEY at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\",\"timestamp\":\"2025-09-20T10:58:09.973Z\"},{\"type\":\"log\",\"message\":\"-widgetState object: {\\\"isOpen\\\":true,\\\"isMinimized\\\":false,\\\"projectKey\\\":\\\"qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"reportType\\\":\\\"bug\\\",\\\"attachments\\\":[],\\\"formData\\\":{\\\"title\\\":\\\"\\\",\\\"description\\\":\\\"\\\",\\\"reporter_name\\\":\\\"\\\",\\\"reporter_email\\\":\\\"\\\",\\\"priority\\\":\\\"medium\\\"},\\\"diagnosticData\\\":{\\\"url\\\":\\\"http://localhost:3000/demo-production.html\\\",\\\"userAgent\\\":\\\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36\\\",\\\"screenResolution\\\":\\\"1280x720\\\",\\\"windowSize\\\":\\\"1280x720\\\",\\\"language\\\":\\\"en-US\\\",\\\"platform\\\":\\\"MacIntel\\\",\\\"consoleLogs\\\":[{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"FeeDLooP Debug:gatherFormData called\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.971Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-widgetState.projectKey at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.972Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-SCRIPT_TAG at form submission: {}\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.972Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-PROJECT_KEY at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"timestamp\\\":\",\"timestamp\":\"2025-09-20T10:58:09.973Z\"},{\"type\":\"log\",\"message\":\"-widgetState.projectKey at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\",\"timestamp\":\"2025-09-20T10:58:09.972Z\"},{\"type\":\"log\",\"message\":\"-SCRIPT_TAG at form submission: {}\",\"timestamp\":\"2025-09-20T10:58:09.972Z\"},{\"type\":\"log\",\"message\":\"FeeDLooP Debug:gatherFormData called\",\"timestamp\":\"2025-09-20T10:58:09.971Z\"}]"
+      - generic [ref=e146]:
+        - generic [ref=e147]: "[2:58:09 PM]"
+        - generic [ref=e148]: "[LOG]"
+        - text: "FeeDLooP Debug:Adding form field network_requests: [{\"name\":\"https://feedloop.soula.ge/widget/dist/feedloop-widget.min.js\",\"duration\":335,\"size\":0,\"type\":\"script\"}]"
+      - generic [ref=e149]:
+        - generic [ref=e150]: "[2:58:09 PM]"
+        - generic [ref=e151]: "[LOG]"
+        - text: "FeeDLooP Debug:FormData entries:"
+      - generic [ref=e152]:
+        - generic [ref=e153]: "[2:58:09 PM]"
+        - generic [ref=e154]: "[LOG]"
+        - text: "-project_key: qqa6gF2deJypP3VKEYODxu31yQLaygYz"
+      - generic [ref=e155]:
+        - generic [ref=e156]: "[2:58:09 PM]"
+        - generic [ref=e157]: "[LOG]"
+        - text: "-type: bug"
+      - generic [ref=e158]:
+        - generic [ref=e159]: "[2:58:09 PM]"
+        - generic [ref=e160]: "[LOG]"
+        - text: "-title: Production Test Report"
+      - generic [ref=e161]:
+        - generic [ref=e162]: "[2:58:09 PM]"
+        - generic [ref=e163]: "[LOG]"
+        - text: "-description: This is a test submission from the production widget test suite."
+      - generic [ref=e164]:
+        - generic [ref=e165]: "[2:58:09 PM]"
+        - generic [ref=e166]: "[LOG]"
+        - text: "-priority: medium"
+      - generic [ref=e167]:
+        - generic [ref=e168]: "[2:58:09 PM]"
+        - generic [ref=e169]: "[LOG]"
+        - text: "-reporter_name: Production Tester"
+      - generic [ref=e170]:
+        - generic [ref=e171]: "[2:58:09 PM]"
+        - generic [ref=e172]: "[LOG]"
+        - text: "-reporter_email: production@test.com"
+      - generic [ref=e173]:
+        - generic [ref=e174]: "[2:58:09 PM]"
+        - generic [ref=e175]: "[LOG]"
+        - text: "-url: http://localhost:3000/demo-production.html"
+      - generic [ref=e176]:
+        - generic [ref=e177]: "[2:58:09 PM]"
+        - generic [ref=e178]: "[LOG]"
+        - text: "-user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36"
+      - generic [ref=e179]:
+        - generic [ref=e180]: "[2:58:09 PM]"
+        - generic [ref=e181]: "[LOG]"
+        - text: "-console_logs: [{\"type\":\"log\",\"message\":\"-PROJECT_KEY at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\",\"timestamp\":\"2025-09-20T10:58:09.973Z\"},{\"type\":\"log\",\"message\":\"-widgetState object: {\\\"isOpen\\\":true,\\\"isMinimized\\\":false,\\\"projectKey\\\":\\\"qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"reportType\\\":\\\"bug\\\",\\\"attachments\\\":[],\\\"formData\\\":{\\\"title\\\":\\\"\\\",\\\"description\\\":\\\"\\\",\\\"reporter_name\\\":\\\"\\\",\\\"reporter_email\\\":\\\"\\\",\\\"priority\\\":\\\"medium\\\"},\\\"diagnosticData\\\":{\\\"url\\\":\\\"http://localhost:3000/demo-production.html\\\",\\\"userAgent\\\":\\\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36\\\",\\\"screenResolution\\\":\\\"1280x720\\\",\\\"windowSize\\\":\\\"1280x720\\\",\\\"language\\\":\\\"en-US\\\",\\\"platform\\\":\\\"MacIntel\\\",\\\"consoleLogs\\\":[{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"FeeDLooP Debug:gatherFormData called\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.971Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-widgetState.projectKey at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.972Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-SCRIPT_TAG at form submission: {}\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.972Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-PROJECT_KEY at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"timestamp\\\":\",\"timestamp\":\"2025-09-20T10:58:09.973Z\"},{\"type\":\"log\",\"message\":\"-widgetState.projectKey at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\",\"timestamp\":\"2025-09-20T10:58:09.972Z\"},{\"type\":\"log\",\"message\":\"-SCRIPT_TAG at form submission: {}\",\"timestamp\":\"2025-09-20T10:58:09.972Z\"},{\"type\":\"log\",\"message\":\"FeeDLooP Debug:gatherFormData called\",\"timestamp\":\"2025-09-20T10:58:09.971Z\"}]"
+      - generic [ref=e182]:
+        - generic [ref=e183]: "[2:58:09 PM]"
+        - generic [ref=e184]: "[LOG]"
+        - text: "-network_requests: [{\"name\":\"https://feedloop.soula.ge/widget/dist/feedloop-widget.min.js\",\"duration\":335,\"size\":0,\"type\":\"script\"}]"
+      - generic [ref=e185]:
+        - generic [ref=e186]: "[2:58:09 PM]"
+        - generic [ref=e187]: "[LOG]"
+        - text: "-project_key: qqa6gF2deJypP3VKEYODxu31yQLaygYz"
+      - generic [ref=e188]:
+        - generic [ref=e189]: "[2:58:09 PM]"
+        - generic [ref=e190]: "[LOG]"
+        - text: "-type: bug"
+      - generic [ref=e191]:
+        - generic [ref=e192]: "[2:58:09 PM]"
+        - generic [ref=e193]: "[LOG]"
+        - text: "-title: Production Test Report"
+      - generic [ref=e194]:
+        - generic [ref=e195]: "[2:58:09 PM]"
+        - generic [ref=e196]: "[LOG]"
+        - text: "-description: This is a test submission from the production widget test suite."
+      - generic [ref=e197]:
+        - generic [ref=e198]: "[2:58:09 PM]"
+        - generic [ref=e199]: "[LOG]"
+        - text: "-priority: medium"
+      - generic [ref=e200]:
+        - generic [ref=e201]: "[2:58:09 PM]"
+        - generic [ref=e202]: "[LOG]"
+        - text: "-reporter_name: Production Tester"
+      - generic [ref=e203]:
+        - generic [ref=e204]: "[2:58:09 PM]"
+        - generic [ref=e205]: "[LOG]"
+        - text: "-reporter_email: production@test.com"
+      - generic [ref=e206]:
+        - generic [ref=e207]: "[2:58:09 PM]"
+        - generic [ref=e208]: "[LOG]"
+        - text: "-url: http://localhost:3000/demo-production.html"
+      - generic [ref=e209]:
+        - generic [ref=e210]: "[2:58:09 PM]"
+        - generic [ref=e211]: "[LOG]"
+        - text: "-user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36"
+      - generic [ref=e212]:
+        - generic [ref=e213]: "[2:58:09 PM]"
+        - generic [ref=e214]: "[LOG]"
+        - text: "-console_logs: [{\"type\":\"log\",\"message\":\"-PROJECT_KEY at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\",\"timestamp\":\"2025-09-20T10:58:09.973Z\"},{\"type\":\"log\",\"message\":\"-widgetState object: {\\\"isOpen\\\":true,\\\"isMinimized\\\":false,\\\"projectKey\\\":\\\"qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"reportType\\\":\\\"bug\\\",\\\"attachments\\\":[],\\\"formData\\\":{\\\"title\\\":\\\"\\\",\\\"description\\\":\\\"\\\",\\\"reporter_name\\\":\\\"\\\",\\\"reporter_email\\\":\\\"\\\",\\\"priority\\\":\\\"medium\\\"},\\\"diagnosticData\\\":{\\\"url\\\":\\\"http://localhost:3000/demo-production.html\\\",\\\"userAgent\\\":\\\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.16 Safari/537.36\\\",\\\"screenResolution\\\":\\\"1280x720\\\",\\\"windowSize\\\":\\\"1280x720\\\",\\\"language\\\":\\\"en-US\\\",\\\"platform\\\":\\\"MacIntel\\\",\\\"consoleLogs\\\":[{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"FeeDLooP Debug:gatherFormData called\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.971Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-widgetState.projectKey at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.972Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-SCRIPT_TAG at form submission: {}\\\",\\\"timestamp\\\":\\\"2025-09-20T10:58:09.972Z\\\"},{\\\"type\\\":\\\"log\\\",\\\"message\\\":\\\"-PROJECT_KEY at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\\\",\\\"timestamp\\\":\",\"timestamp\":\"2025-09-20T10:58:09.973Z\"},{\"type\":\"log\",\"message\":\"-widgetState.projectKey at form submission: qqa6gF2deJypP3VKEYODxu31yQLaygYz\",\"timestamp\":\"2025-09-20T10:58:09.972Z\"},{\"type\":\"log\",\"message\":\"-SCRIPT_TAG at form submission: {}\",\"timestamp\":\"2025-09-20T10:58:09.972Z\"},{\"type\":\"log\",\"message\":\"FeeDLooP Debug:gatherFormData called\",\"timestamp\":\"2025-09-20T10:58:09.971Z\"}]"
+      - generic [ref=e215]:
+        - generic [ref=e216]: "[2:58:09 PM]"
+        - generic [ref=e217]: "[LOG]"
+        - text: "-network_requests: [{\"name\":\"https://feedloop.soula.ge/widget/dist/feedloop-widget.min.js\",\"duration\":335,\"size\":0,\"type\":\"script\"}]"
+      - generic [ref=e218]:
+        - generic [ref=e219]: "[2:58:09 PM]"
+        - generic [ref=e220]: "[LOG]"
+        - text: "FeeDLooP Debug:Submitting to URL: http://localhost:3001/api/widget/submit"
+      - generic [ref=e221]:
+        - generic [ref=e222]: "[2:58:09 PM]"
+        - generic [ref=e223]: "[ERROR]"
+        - text: "FeeDLooP Debug:Fetch error: {}"
+      - generic [ref=e224]:
+        - generic [ref=e225]: "[2:58:09 PM]"
+        - generic [ref=e226]: "[ERROR]"
+        - text: "FeeDLooP submission error: {}"
+  - generic [ref=e227]:
+    - heading "Widget Integration" [level=2] [ref=e228]
+    - paragraph [ref=e229]: The widget should appear in the bottom-right corner of this page.
+    - paragraph [ref=e230]:
+      - strong [ref=e231]: "Project Key:"
+      - code [ref=e232]: qqa6gF2deJypP3VKEYODxu31yQLaygYz
+    - paragraph [ref=e233]:
+      - strong [ref=e234]: "Widget URL:"
+      - code [ref=e235]: https://feedloop.soula.ge/widget/dist/feedloop-widget.min.js
+  - generic [ref=e236]:
+    - generic [ref=e237]:
+      - heading "Send Feedback" [level=3] [ref=e238]
+      - generic [ref=e239]:
+        - button "Minimize" [ref=e240] [cursor=pointer]:
+          - img [ref=e241] [cursor=pointer]
+        - button "Close" [ref=e242] [cursor=pointer]:
+          - img [ref=e243] [cursor=pointer]
+    - generic [ref=e245]:
+      - generic [ref=e246]:
+        - button "🐛 Bug Report" [ref=e247] [cursor=pointer]:
+          - generic [ref=e248] [cursor=pointer]: 🐛
+          - generic [ref=e249] [cursor=pointer]: Bug Report
+        - button "💡 Initiative" [ref=e250] [cursor=pointer]:
+          - generic [ref=e251] [cursor=pointer]: 💡
+          - generic [ref=e252] [cursor=pointer]: Initiative
+        - button "💬 Feedback" [ref=e253] [cursor=pointer]:
+          - generic [ref=e254] [cursor=pointer]: 💬
+          - generic [ref=e255] [cursor=pointer]: Feedback
+      - generic [ref=e256]:
+        - generic [ref=e257]:
+          - generic [ref=e258]: Title*
+          - textbox "Title*" [ref=e259]: Production Test Report
+        - generic [ref=e261]:
+          - generic [ref=e262]: Description*
+          - generic [ref=e263]:
+            - generic [ref=e264]:
+              - button "B" [ref=e265] [cursor=pointer]:
+                - strong [ref=e266] [cursor=pointer]: B
+              - button "I" [ref=e267] [cursor=pointer]:
+                - emphasis [ref=e268] [cursor=pointer]: I
+              - button "•" [ref=e269] [cursor=pointer]
+              - button "1." [ref=e270] [cursor=pointer]
+            - generic [ref=e271]: This is a test submission from the production widget test suite.
+        - generic [ref=e272]:
+          - generic [ref=e273]:
+            - generic [ref=e274]: Your Name(optional)
+            - textbox "Your Name(optional)" [ref=e275]: Production Tester
+          - generic [ref=e276]:
+            - generic [ref=e277]: Your Email(optional)
+            - textbox "Your Email(optional)" [ref=e278]: production@test.com
+        - generic [ref=e280]:
+          - generic [ref=e281]: Attachments(Max 5 files,10MB each)
+          - generic [ref=e283] [cursor=pointer]:
+            - img [ref=e284] [cursor=pointer]
+            - generic [ref=e287] [cursor=pointer]: Drag and drop or click to upload
+        - generic [ref=e289]:
+          - strong [ref=e290]: "Note:"
+          - text: We'll automatically collect browser info and console logs to help diagnose issues.
+        - generic [ref=e291]:
+          - button "Cancel" [ref=e292] [cursor=pointer]
+          - button "Send Feedback" [ref=e293] [cursor=pointer]:
+            - generic [ref=e294] [cursor=pointer]: Send Feedback
+    - generic [ref=e295]:
+      - img [ref=e296]
+      - generic [ref=e298]: Failed to fetch
+```

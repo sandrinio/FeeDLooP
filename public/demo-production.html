@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FeeDLooP Widget - Production Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .demo-section {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .console-output {
+            background: #1e1e1e;
+            color: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 FeeDLooP Widget - Production Test</h1>
+
+    <div class="demo-section">
+        <h2>Widget Status</h2>
+        <div id="widget-status" class="status info">
+            🔄 Checking widget status...
+        </div>
+
+        <h3>Test Actions</h3>
+        <button onclick="openWidget()">Open Widget</button>
+        <button onclick="testWidgetAPI()">Test Widget API</button>
+        <button onclick="generateTestData()">Generate Test Data</button>
+        <button onclick="clearConsole()">Clear Console</button>
+    </div>
+
+    <div class="demo-section">
+        <h2>Console Output</h2>
+        <div id="console-output" class="console-output">
+            Console logs will appear here...
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>Widget Integration</h2>
+        <p>The widget should appear in the bottom-right corner of this page.</p>
+        <p><strong>Project Key:</strong> <code>qqa6gF2deJypP3VKEYODxu31yQLaygYz</code></p>
+        <p><strong>Widget URL:</strong> <code>https://feedloop.soula.ge/widget/dist/feedloop-widget.min.js</code></p>
+    </div>
+
+    <!-- Production Widget Integration -->
+    <script>
+        // Override console to capture logs
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn,
+            info: console.info
+        };
+
+        const consoleOutput = document.getElementById('console-output');
+        const widgetStatus = document.getElementById('widget-status');
+
+        function addToConsole(type, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span style="color: #888;">[${timestamp}]</span> <span style="color: ${
+                type === 'error' ? '#ff6b6b' :
+                type === 'warn' ? '#ffa726' :
+                type === 'info' ? '#42a5f5' : '#4caf50'
+            };">[${type.toUpperCase()}]</span> ${message}`;
+            consoleOutput.appendChild(logEntry);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        ['log', 'error', 'warn', 'info'].forEach(method => {
+            console[method] = function(...args) {
+                const message = args.map(arg =>
+                    typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+                ).join(' ');
+                addToConsole(method, message);
+                originalConsole[method].apply(console, args);
+            };
+        });
+
+        function clearConsole() {
+            consoleOutput.innerHTML = 'Console cleared...';
+        }
+
+        function openWidget() {
+            if (window.FeeDLooPWidget) {
+                window.FeeDLooPWidget.open();
+                addToConsole('info', 'Widget opened programmatically');
+            } else {
+                addToConsole('error', 'Widget not available');
+            }
+        }
+
+        function testWidgetAPI() {
+            addToConsole('info', 'Testing widget API...');
+
+            // Test basic widget functionality
+            if (window.FeeDLooPWidget) {
+                addToConsole('info', `Widget version: ${window.FeeDLooPWidget.version}`);
+                const state = window.FeeDLooPWidget.getState();
+                addToConsole('info', `Widget state: ${JSON.stringify(state, null, 2)}`);
+            } else {
+                addToConsole('error', 'Widget API not available');
+            }
+
+            // Test API endpoint
+            fetch('https://feedloop.soula.ge/api/test-db')
+                .then(response => {
+                    addToConsole('info', `API test response: ${response.status} ${response.statusText}`);
+                    return response.text();
+                })
+                .then(data => {
+                    addToConsole('info', `API test data: ${data}`);
+                })
+                .catch(error => {
+                    addToConsole('error', `API test failed: ${error.message}`);
+                });
+        }
+
+        function generateTestData() {
+            addToConsole('info', 'Generating test console data...');
+            console.log('Test log message');
+            console.warn('Test warning message');
+            console.error('Test error message');
+
+            // Generate some network activity
+            fetch('/favicon.ico').catch(() => {});
+
+            addToConsole('info', 'Test data generated for diagnostics');
+        }
+
+        // Check widget status
+        function checkWidgetStatus() {
+            setTimeout(() => {
+                if (window.FeeDLooPWidget) {
+                    widgetStatus.className = 'status success';
+                    widgetStatus.innerHTML = '✅ Widget loaded successfully!';
+                    addToConsole('info', 'FeeDLooP Widget loaded successfully');
+                } else {
+                    widgetStatus.className = 'status error';
+                    widgetStatus.innerHTML = '❌ Widget failed to load';
+                    addToConsole('error', 'FeeDLooP Widget failed to load');
+                }
+            }, 2000);
+        }
+
+        // Initialize
+        addToConsole('info', 'Demo page loaded - waiting for widget...');
+        checkWidgetStatus();
+    </script>
+
+    <!-- Load the production widget -->
+    <script
+        src="https://feedloop.soula.ge/widget/dist/feedloop-widget.min.js"
+        data-project-key="qqa6gF2deJypP3VKEYODxu31yQLaygYz"
+        onload="console.log('Widget script loaded')"
+        onerror="console.error('Widget script failed to load')">
+    </script>
+</body>
+</html>

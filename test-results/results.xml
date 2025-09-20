@@ -1,0 +1,52 @@
+<testsuites id="" name="" tests="1" failures="1" skipped="0" errors="0" time="18.132429">
+<testsuite name="widget-production.spec.ts" timestamp="2025-09-20T10:58:04.700Z" hostname="chromium" tests="1" failures="1" skipped="0" time="14.64" errors="0">
+<testcase name="Production Widget Tests › production widget loads and submits feedback successfully" classname="widget-production.spec.ts" time="14.64">
+<failure message="widget-production.spec.ts:4:7 production widget loads and submits feedback successfully" type="FAILURE">
+<![CDATA[  [chromium] › widget-production.spec.ts:4:7 › Production Widget Tests › production widget loads and submits feedback successfully 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('.feedloop-success')
+    Expected: visible
+    Received: hidden
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 10000ms
+      - waiting for locator('.feedloop-success')
+        14 × locator resolved to <div class="feedloop-message feedloop-success">…</div>
+           - unexpected value "hidden"
+
+
+      35 |     // Wait for success message
+      36 |     const successMessage = page.locator('.feedloop-success');
+    > 37 |     await expect(successMessage).toBeVisible({ timeout: 10000 });
+         |                                  ^
+      38 |     await expect(successMessage).toContainText('Thank you');
+      39 |
+      40 |     console.log('✅ Production widget test completed successfully');
+        at /Volumes/My Drive/dev/FeeDLooP_v1/tests/e2e/widget-production.spec.ts:37:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/widget-production-Producti-b232f-bmits-feedback-successfully-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/widget-production-Producti-b232f-bmits-feedback-successfully-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/widget-production-Producti-b232f-bmits-feedback-successfully-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|widget-production-Producti-b232f-bmits-feedback-successfully-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|widget-production-Producti-b232f-bmits-feedback-successfully-chromium/video.webm]]
+
+[[ATTACHMENT|widget-production-Producti-b232f-bmits-feedback-successfully-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>
