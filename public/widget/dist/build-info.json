@@ -1,12 +1,12 @@
 {
   "version": "0.1.0",
-  "buildId": "mfrxhy2k",
-  "buildTime": "2025-09-20T07:09:56.542Z",
+  "buildId": "mfrxp3i0",
+  "buildTime": "2025-09-20T07:15:30.171Z",
   "files": {
     "widget": {
       "filename": "feedloop-widget.min.js",
-      "size": 30867,
-      "integrity": "sha384-Pm0Tc77brL+UDqsglYh0Ht5SUNJs7xtQDZ88qgE+5Rsg3d/IKYLRv4BnEp+/nvXb"
+      "size": 31187,
+      "integrity": "sha384-UmVtpdlSVOPE7dyKD3ATg5rLyHyR3lW51Ss81mUDpI1hqnipDo406s8eRqukypai"
     }
   }
 }

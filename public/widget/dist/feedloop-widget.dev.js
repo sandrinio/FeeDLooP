@@ -1,6 +1,6 @@
 
-// FeeDLooP Widget v0.1.0 (Build: mfrxhy2k)
-// Built on: 2025-09-20T07:09:56.545Z
+// FeeDLooP Widget v0.1.0 (Build: mfrxp3i0)
+// Built on: 2025-09-20T07:15:30.173Z
 // For more info: https://feedloop.com
 
 (function() {
@@ -652,7 +652,7 @@
 
   // Capture console logs
   function captureConsoleLogs() {
-    const maxLogs = 50;
+    const maxLogs = 10;
     const originalConsole = {
       log: console.log,
       error: console.error,
@@ -688,8 +688,8 @@
   function captureNetworkRequests() {
     if (window.performance && window.performance.getEntriesByType) {
       const requests = window.performance.getEntriesByType('resource');
-      widgetState.diagnosticData.networkRequests = requests.slice(-20).map(req => ({
-        name: req.name,
+      widgetState.diagnosticData.networkRequests = requests.slice(-5).map(req => ({
+        name: req.name.substring(0, 100), // Truncate long URLs early
         duration: Math.round(req.duration),
         size: req.transferSize || 0,
         type: req.initiatorType
@@ -789,6 +789,24 @@
     console.log('- PROJECT_KEY at form submission:', PROJECT_KEY);
     console.log('- widgetState object:', widgetState);
 
+    // Limit diagnostic data to prevent 1MB size limit
+    const limitedConsoleLogs = widgetState.diagnosticData.consoleLogs
+      .slice(-10) // Only last 10 logs
+      .map(log => ({
+        type: log.type,
+        message: log.message.substring(0, 500), // Truncate long messages
+        timestamp: log.timestamp
+      }));
+
+    const limitedNetworkRequests = widgetState.diagnosticData.networkRequests
+      .slice(-10) // Only last 10 requests
+      .map(req => ({
+        name: req.name.substring(0, 200), // Truncate long URLs
+        duration: req.duration,
+        size: req.size,
+        type: req.type
+      }));
+
     const formData = {
       project_key: widgetState.projectKey,
       type: widgetState.reportType,
@@ -799,8 +817,8 @@
       reporter_email: form.querySelector('#feedloop-email').value.trim() || null,
       url: widgetState.diagnosticData.url,
       user_agent: widgetState.diagnosticData.userAgent,
-      console_logs: widgetState.diagnosticData.consoleLogs,
-      network_requests: widgetState.diagnosticData.networkRequests,
+      console_logs: limitedConsoleLogs,
+      network_requests: limitedNetworkRequests,
       attachments: widgetState.attachments
     };
 
