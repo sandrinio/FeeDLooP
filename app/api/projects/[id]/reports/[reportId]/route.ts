@@ -10,10 +10,10 @@ import { ServerSession } from '@/lib/auth/session'
 import { z } from 'zod'
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
     reportId: string
-  }
+  }>
 }
 
 /**
@@ -72,17 +72,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         priority,
         reporter_email,
         reporter_name,
-        browser_info,
-        page_url,
         created_at,
         updated_at,
-        created_by,
         fl_attachments(
           id,
           filename,
           file_size,
           mime_type,
-          file_url,
           created_at
         )
       `)
@@ -98,28 +94,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Get creator information if available
-    let creatorInfo = null
-    if (report.created_by) {
-      const { data: creator } = await supabaseAdmin
-        .from('fl_users')
-        .select('email, first_name, last_name')
-        .eq('id', report.created_by)
-        .single()
-
-      if (creator) {
-        creatorInfo = {
-          email: creator.email,
-          name: `${creator.first_name} ${creator.last_name}`.trim()
-        }
-      }
-    }
-
-    // Return report with creator info
-    return NextResponse.json({
-      ...report,
-      creator: creatorInfo
-    })
+    // Return report
+    return NextResponse.json(report)
 
   } catch (error) {
     console.error('Report detail API error:', error)
@@ -150,14 +126,14 @@ const UpdateReportSchema = z.object({
     .max(10000, 'Description must be less than 10000 characters')
     .trim()
     .optional(),
-  status: z.enum(['new', 'in_progress', 'resolved', 'closed'], {
-    errorMap: () => ({ message: 'Status must be "new", "in_progress", "resolved", or "closed"' })
+  status: z.enum(['active', 'archived'], {
+    errorMap: () => ({ message: 'Status must be "active" or "archived"' })
   }).optional(),
   priority: z.enum(['low', 'medium', 'high', 'critical'], {
     errorMap: () => ({ message: 'Priority must be "low", "medium", "high", or "critical"' })
   }).optional(),
-  type: z.enum(['bug', 'feature', 'feedback'], {
-    errorMap: () => ({ message: 'Type must be "bug", "feature", or "feedback"' })
+  type: z.enum(['bug', 'initiative', 'feedback'], {
+    errorMap: () => ({ message: 'Type must be "bug", "initiative", or "feedback"' })
   }).optional()
 })
 
@@ -225,7 +201,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     // Check if report exists and belongs to the project
     const { data: existingReport, error: reportError } = await supabaseAdmin
       .from('fl_reports')
-      .select('id, created_by')
+      .select('id')
       .eq('id', reportId)
       .eq('project_id', projectId)
       .single()
@@ -268,11 +244,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         priority,
         reporter_email,
         reporter_name,
-        browser_info,
-        page_url,
         created_at,
-        updated_at,
-        created_by
+        updated_at
       `)
       .single()
 
@@ -284,23 +257,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Get creator information if available
-    let creatorInfo = null
-    if (updatedReport.created_by) {
-      const { data: creator } = await supabaseAdmin
-        .from('fl_users')
-        .select('email, first_name, last_name')
-        .eq('id', updatedReport.created_by)
-        .single()
-
-      if (creator) {
-        creatorInfo = {
-          email: creator.email,
-          name: `${creator.first_name} ${creator.last_name}`.trim()
-        }
-      }
-    }
-
     // Get attachments
     const { data: attachments } = await supabaseAdmin
       .from('fl_attachments')
@@ -309,7 +265,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         filename,
         file_size,
         mime_type,
-        file_url,
         created_at
       `)
       .eq('report_id', reportId)
@@ -317,7 +272,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     // Return the updated report with related data
     return NextResponse.json({
       ...updatedReport,
-      creator: creatorInfo,
       fl_attachments: attachments || []
     })
 

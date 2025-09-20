@@ -10,9 +10,9 @@ import { ServerSession } from '@/lib/auth/session'
 import { z } from 'zod'
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 /**
@@ -73,8 +73,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         priority,
         reporter_email,
         reporter_name,
-        browser_info,
-        page_url,
         created_at,
         updated_at,
         fl_attachments(
@@ -90,11 +88,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .range(offset, offset + limit - 1)
 
     // Apply filters if provided
-    if (status && ['new', 'in_progress', 'resolved', 'closed'].includes(status)) {
+    if (status && ['active', 'archived'].includes(status)) {
       query = query.eq('status', status)
     }
 
-    if (type && ['bug', 'feature', 'feedback'].includes(type)) {
+    if (type && ['bug', 'initiative', 'feedback'].includes(type)) {
       query = query.eq('type', type)
     }
 
@@ -119,11 +117,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .eq('project_id', projectId)
 
     // Apply same filters to count query
-    if (status && ['new', 'in_progress', 'resolved', 'closed'].includes(status)) {
+    if (status && ['active', 'archived'].includes(status)) {
       countQuery = countQuery.eq('status', status)
     }
 
-    if (type && ['bug', 'feature', 'feedback'].includes(type)) {
+    if (type && ['bug', 'initiative', 'feedback'].includes(type)) {
       countQuery = countQuery.eq('type', type)
     }
 
@@ -180,8 +178,8 @@ const CreateReportSchema = z.object({
     .min(1, 'Description is required')
     .max(10000, 'Description must be less than 10000 characters')
     .trim(),
-  type: z.enum(['bug', 'feature', 'feedback'], {
-    errorMap: () => ({ message: 'Type must be "bug", "feature", or "feedback"' })
+  type: z.enum(['bug', 'initiative', 'feedback'], {
+    errorMap: () => ({ message: 'Type must be "bug", "initiative", or "feedback"' })
   }),
   priority: z.enum(['low', 'medium', 'high', 'critical'], {
     errorMap: () => ({ message: 'Priority must be "low", "medium", "high", or "critical"' })
@@ -194,17 +192,6 @@ const CreateReportSchema = z.object({
   reporter_name: z.string()
     .max(100, 'Name must be less than 100 characters')
     .trim()
-    .optional(),
-  browser_info: z.object({
-    user_agent: z.string().optional(),
-    screen_resolution: z.string().optional(),
-    viewport_size: z.string().optional(),
-    browser_language: z.string().optional(),
-    platform: z.string().optional()
-  }).optional(),
-  page_url: z.string()
-    .url('Invalid URL format')
-    .max(2000, 'URL must be less than 2000 characters')
     .optional(),
   attachment_ids: z.array(z.string().uuid('Invalid attachment ID'))
     .max(5, 'Maximum 5 attachments allowed')
@@ -272,8 +259,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       priority,
       reporter_email,
       reporter_name,
-      browser_info,
-      page_url,
       attachment_ids
     } = validation.data
 
@@ -319,12 +304,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         description,
         type,
         priority,
-        status: 'new',
+        status: 'active',
         reporter_email,
-        reporter_name,
-        browser_info,
-        page_url,
-        created_by: user.user_id
+        reporter_name
       })
       .select(`
         id,
@@ -335,8 +317,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         priority,
         reporter_email,
         reporter_name,
-        browser_info,
-        page_url,
         created_at,
         updated_at
       `)
@@ -378,8 +358,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           priority,
           reporter_email,
           reporter_name,
-          browser_info,
-          page_url,
           created_at,
           updated_at,
           fl_attachments(
