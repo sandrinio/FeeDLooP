@@ -805,7 +805,7 @@
 
   // Intelligent diagnostic data optimization
   function optimizeDiagnosticData() {
-    const MAX_DIAGNOSTIC_SIZE = 300000; // ~300KB for diagnostic data (leaves room for form content)
+    const MAX_DIAGNOSTIC_SIZE = 8000000; // ~8MB for diagnostic data (leaves room for form content)
 
     // Start with full data and iteratively reduce if needed
     let consoleLogs = [...widgetState.diagnosticData.consoleLogs];
@@ -889,6 +889,53 @@
     }
   }
 
+  // Compression utilities
+  async function compressData(data) {
+    try {
+      // Convert data to JSON string
+      const jsonString = JSON.stringify(data);
+
+      // Use browser's built-in compression
+      const stream = new CompressionStream('gzip');
+      const writer = stream.writable.getWriter();
+      const reader = stream.readable.getReader();
+
+      // Write the data
+      writer.write(new TextEncoder().encode(jsonString));
+      writer.close();
+
+      // Read compressed data
+      const chunks = [];
+      let done = false;
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) chunks.push(value);
+      }
+
+      // Convert to base64 for transport
+      const compressed = new Uint8Array(chunks.reduce((acc, chunk) => acc + chunk.length, 0));
+      let offset = 0;
+      for (const chunk of chunks) {
+        compressed.set(chunk, offset);
+        offset += chunk.length;
+      }
+
+      const base64 = btoa(String.fromCharCode(...compressed));
+
+      console.log('FeeDLooP Compression:', {
+        original: jsonString.length,
+        compressed: base64.length,
+        ratio: ((jsonString.length - base64.length) / jsonString.length * 100).toFixed(1) + '%'
+      });
+
+      return base64;
+    } catch (error) {
+      console.log('FeeDLooP: Compression failed, sending uncompressed:', error);
+      return null;
+    }
+  }
+
   // Submit feedback to API
   async function submitFeedback(data) {
     console.log('FeeDLooP Debug: submitFeedback called');
@@ -897,9 +944,31 @@
 
     const formData = new FormData();
 
-    // Add text fields
+    // Try to compress diagnostic data if it's large
+    if (data.diagnostic_data && JSON.stringify(data.diagnostic_data).length > 50000) {
+      const compressed = await compressData(data.diagnostic_data);
+      if (compressed) {
+        formData.append('diagnostic_data_compressed', compressed);
+        formData.append('compression_type', 'gzip');
+        console.log('FeeDLooP Debug: Using compressed diagnostic data');
+      } else {
+        formData.append('diagnostic_data', JSON.stringify(data.diagnostic_data));
+        console.log('FeeDLooP Debug: Compression failed, using uncompressed diagnostic data');
+      }
+    } else {
+      // Add text fields normally
+      Object.keys(data).forEach(key => {
+        if (key !== 'attachments' && data[key] !== null) {
+          const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
+          console.log(`FeeDLooP Debug: Adding form field ${key}:`, value);
+          formData.append(key, value);
+        }
+      });
+    }
+
+    // Add non-diagnostic fields
     Object.keys(data).forEach(key => {
-      if (key !== 'attachments' && data[key] !== null) {
+      if (key !== 'attachments' && key !== 'diagnostic_data' && data[key] !== null) {
         const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
         console.log(`FeeDLooP Debug: Adding form field ${key}:`, value);
         formData.append(key, value);

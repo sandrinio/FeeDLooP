@@ -17,6 +17,9 @@ import {
 import { z } from 'zod'
 import { v4 as uuidv4 } from 'uuid'
 
+// Configure runtime for the route
+export const runtime = 'nodejs'
+
 // CORS headers for widget embedding
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -57,9 +60,51 @@ export async function POST(request: NextRequest) {
     const consoleLogs = formData.get('console_logs') as string | null
     const networkRequests = formData.get('network_requests') as string | null
 
+    // Check for compressed diagnostic data
+    const compressedDiagnosticData = formData.get('diagnostic_data_compressed') as string | null
+    const compressionType = formData.get('compression_type') as string | null
+    const uncompressedDiagnosticData = formData.get('diagnostic_data') as string | null
+
     // Parse diagnostic data
+    let parsedDiagnosticData = null
     let parsedConsoleLogs = null
     let parsedNetworkRequests = null
+
+    // Handle compressed diagnostic data
+    if (compressedDiagnosticData && compressionType === 'gzip') {
+      try {
+        // Decode base64 and decompress
+        const compressed = Uint8Array.from(atob(compressedDiagnosticData), c => c.charCodeAt(0))
+        const decompressed = await new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.enqueue(compressed)
+              controller.close()
+            }
+          }).pipeThrough(new DecompressionStream('gzip'))
+        ).text()
+
+        parsedDiagnosticData = JSON.parse(decompressed)
+        console.log('Successfully decompressed diagnostic data:', {
+          compressed: compressedDiagnosticData.length,
+          decompressed: decompressed.length
+        })
+      } catch (error) {
+        console.error('Failed to decompress diagnostic data:', error)
+      }
+    } else if (uncompressedDiagnosticData) {
+      try {
+        parsedDiagnosticData = JSON.parse(uncompressedDiagnosticData)
+      } catch (error) {
+        console.error('Failed to parse uncompressed diagnostic data:', error)
+      }
+    }
+
+    // Extract console logs and network requests from parsed diagnostic data
+    if (parsedDiagnosticData) {
+      parsedConsoleLogs = parsedDiagnosticData.consoleLogs || parsedDiagnosticData.console_logs
+      parsedNetworkRequests = parsedDiagnosticData.networkRequests || parsedDiagnosticData.network_requests
+    }
 
     if (consoleLogs) {
       try {
