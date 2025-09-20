@@ -9,7 +9,18 @@
 
   // Widget configuration
   const WIDGET_VERSION = '1.0.0';
-  const WIDGET_API_BASE = typeof window !== 'undefined' && window.FEEDLOOP_API_BASE || '';
+
+  // API Base URL detection
+  let WIDGET_API_BASE = '';
+  if (typeof window !== 'undefined') {
+    if (window.FEEDLOOP_API_BASE) {
+      WIDGET_API_BASE = window.FEEDLOOP_API_BASE;
+    } else if (window.location.hostname === 'localhost' && window.location.port === '3000') {
+      // Development: API server is likely on port 3001
+      WIDGET_API_BASE = 'http://localhost:3001';
+    }
+  }
+
   const WIDGET_NAMESPACE = 'feedloop-widget';
 
   // Capture script tag immediately while currentScript is still available
