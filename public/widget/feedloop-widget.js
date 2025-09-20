@@ -642,7 +642,7 @@
 
   // Capture console logs
   function captureConsoleLogs() {
-    const maxLogs = 10;
+    const maxLogs = 50; // Capture more initially, optimize later
     const originalConsole = {
       log: console.log,
       error: console.error,
@@ -678,8 +678,8 @@
   function captureNetworkRequests() {
     if (window.performance && window.performance.getEntriesByType) {
       const requests = window.performance.getEntriesByType('resource');
-      widgetState.diagnosticData.networkRequests = requests.slice(-5).map(req => ({
-        name: req.name.substring(0, 100), // Truncate long URLs early
+      widgetState.diagnosticData.networkRequests = requests.slice(-30).map(req => ({
+        name: req.name, // Keep full URLs initially, optimize later
         duration: Math.round(req.duration),
         size: req.transferSize || 0,
         type: req.initiatorType
@@ -779,23 +779,8 @@
     console.log('- PROJECT_KEY at form submission:', PROJECT_KEY);
     console.log('- widgetState object:', widgetState);
 
-    // Limit diagnostic data to prevent 1MB size limit
-    const limitedConsoleLogs = widgetState.diagnosticData.consoleLogs
-      .slice(-10) // Only last 10 logs
-      .map(log => ({
-        type: log.type,
-        message: log.message.substring(0, 500), // Truncate long messages
-        timestamp: log.timestamp
-      }));
-
-    const limitedNetworkRequests = widgetState.diagnosticData.networkRequests
-      .slice(-10) // Only last 10 requests
-      .map(req => ({
-        name: req.name.substring(0, 200), // Truncate long URLs
-        duration: req.duration,
-        size: req.size,
-        type: req.type
-      }));
+    // Smart diagnostic data collection that adapts to content size
+    const diagnosticData = optimizeDiagnosticData();
 
     const formData = {
       project_key: widgetState.projectKey,
@@ -807,8 +792,8 @@
       reporter_email: form.querySelector('#feedloop-email').value.trim() || null,
       url: widgetState.diagnosticData.url,
       user_agent: widgetState.diagnosticData.userAgent,
-      console_logs: limitedConsoleLogs,
-      network_requests: limitedNetworkRequests,
+      console_logs: diagnosticData.consoleLogs,
+      network_requests: diagnosticData.networkRequests,
       attachments: widgetState.attachments
     };
 
@@ -816,6 +801,92 @@
     console.log('FeeDLooP Debug: project_key in formData:', formData.project_key);
 
     return formData;
+  }
+
+  // Intelligent diagnostic data optimization
+  function optimizeDiagnosticData() {
+    const MAX_DIAGNOSTIC_SIZE = 300000; // ~300KB for diagnostic data (leaves room for form content)
+
+    // Start with full data and iteratively reduce if needed
+    let consoleLogs = [...widgetState.diagnosticData.consoleLogs];
+    let networkRequests = [...widgetState.diagnosticData.networkRequests];
+
+    // Prioritize recent and error logs
+    consoleLogs = consoleLogs
+      .sort((a, b) => {
+        // Errors first, then warnings, then recent logs
+        if (a.type === 'error' && b.type !== 'error') return -1;
+        if (b.type === 'error' && a.type !== 'error') return 1;
+        if (a.type === 'warn' && b.type === 'log') return -1;
+        if (b.type === 'warn' && a.type === 'log') return 1;
+        return new Date(b.timestamp) - new Date(a.timestamp);
+      });
+
+    // Prioritize failed requests and recent requests
+    networkRequests = networkRequests
+      .filter(req => req.name && !req.name.includes('data:')) // Remove data URLs
+      .sort((a, b) => {
+        // Failed requests first (duration 0 often indicates failure)
+        if (a.duration === 0 && b.duration > 0) return -1;
+        if (b.duration === 0 && a.duration > 0) return 1;
+        return b.duration - a.duration; // Then by duration (longer requests more interesting)
+      });
+
+    // Iteratively reduce data size
+    while (true) {
+      // Create current payload
+      const currentLogs = consoleLogs.map(log => ({
+        type: log.type,
+        message: log.message.substring(0, 1000), // Start with longer messages
+        timestamp: log.timestamp
+      }));
+
+      const currentRequests = networkRequests.map(req => ({
+        name: req.name.substring(0, 150),
+        duration: req.duration,
+        size: req.size,
+        type: req.type
+      }));
+
+      // Estimate size (rough JSON size calculation)
+      const estimatedSize = JSON.stringify({
+        console_logs: currentLogs,
+        network_requests: currentRequests
+      }).length;
+
+      if (estimatedSize <= MAX_DIAGNOSTIC_SIZE) {
+        return {
+          consoleLogs: currentLogs,
+          networkRequests: currentRequests
+        };
+      }
+
+      // Reduce data progressively
+      if (consoleLogs.length > 5) {
+        // Keep errors and warnings, reduce regular logs
+        const errors = consoleLogs.filter(log => log.type === 'error');
+        const warnings = consoleLogs.filter(log => log.type === 'warn');
+        const logs = consoleLogs.filter(log => log.type === 'log').slice(0, Math.max(2, 8 - errors.length - warnings.length));
+        consoleLogs = [...errors, ...warnings, ...logs];
+      } else if (networkRequests.length > 3) {
+        networkRequests = networkRequests.slice(0, Math.max(3, networkRequests.length - 2));
+      } else {
+        // Final fallback - truncate messages more aggressively
+        return {
+          consoleLogs: consoleLogs.slice(0, 3).map(log => ({
+            type: log.type,
+            message: log.message.substring(0, 200),
+            timestamp: log.timestamp
+          })),
+          networkRequests: networkRequests.slice(0, 2).map(req => ({
+            name: req.name.substring(0, 50),
+            duration: req.duration,
+            size: req.size,
+            type: req.type
+          }))
+        };
+      }
+    }
   }
 
   // Submit feedback to API
