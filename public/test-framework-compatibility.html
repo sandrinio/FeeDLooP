@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FeeDLooP Framework Compatibility Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #f5f5f5;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .load-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px 10px 10px 0;
+    }
+    .status {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .success { background: #d1fae5; color: #065f46; }
+    .error { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <h1>FeeDLooP Widget Framework Compatibility Test</h1>
+
+  <div class="test-section">
+    <h2>🧪 Test Cases</h2>
+    <p>This page tests the FeeDLooP widget's compatibility across different loading methods.</p>
+
+    <button class="load-btn" onclick="testStaticLoad()">Test Static Load</button>
+    <button class="load-btn" onclick="testDynamicLoad()">Test Dynamic Load</button>
+    <button class="load-btn" onclick="testMultipleLoad()">Test Multiple Load</button>
+    <button class="load-btn" onclick="testRemoveAndReload()">Test Remove & Reload</button>
+
+    <div id="test-results"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>📱 Responsive Test</h2>
+    <p>Resize your browser window to test responsive behavior:</p>
+    <ul>
+      <li><strong>Desktop (>768px):</strong> Button should appear bottom-right</li>
+      <li><strong>Mobile (<480px):</strong> Button should adapt to mobile layout</li>
+      <li><strong>All sizes:</strong> Button should be fully visible</li>
+    </ul>
+  </div>
+
+  <div class="test-section">
+    <h2>🔧 Framework Integration Examples</h2>
+
+    <h3>React</h3>
+    <pre><code>useEffect(() => {
+  const script = document.createElement('script');
+  script.src = '/widget/dist/feedloop-widget.min.js';
+  script.setAttribute('data-project-key', 'test-key');
+  document.head.appendChild(script);
+  return () => document.head.removeChild(script);
+}, []);</code></pre>
+
+    <h3>Angular</h3>
+    <pre><code>ngOnInit() {
+  const script = document.createElement('script');
+  script.src = '/widget/dist/feedloop-widget.min.js';
+  script.setAttribute('data-project-key', 'test-key');
+  document.head.appendChild(script);
+}</code></pre>
+
+    <h3>Vue.js</h3>
+    <pre><code>mounted() {
+  const script = document.createElement('script');
+  script.src = '/widget/dist/feedloop-widget.min.js';
+  script.setAttribute('data-project-key', 'test-key');
+  document.head.appendChild(script);
+}</code></pre>
+  </div>
+
+  <script>
+    let scriptCount = 0;
+
+    function addResult(test, status, message) {
+      const results = document.getElementById('test-results');
+      const div = document.createElement('div');
+      div.className = `status ${status}`;
+      div.innerHTML = `<strong>${test}:</strong> ${message}`;
+      results.appendChild(div);
+    }
+
+    function testStaticLoad() {
+      const script = document.createElement('script');
+      script.src = '/widget/dist/feedloop-widget.min.js';
+      script.setAttribute('data-project-key', 'test-static-' + Date.now());
+      script.onload = () => addResult('Static Load', 'success', 'Widget loaded successfully');
+      script.onerror = () => addResult('Static Load', 'error', 'Failed to load widget');
+      document.head.appendChild(script);
+    }
+
+    function testDynamicLoad() {
+      const script = document.createElement('script');
+      script.src = '/widget/dist/feedloop-widget.min.js';
+      script.setAttribute('data-project-key', 'test-dynamic-' + Date.now());
+      script.onload = () => addResult('Dynamic Load', 'success', 'Widget loaded dynamically');
+      script.onerror = () => addResult('Dynamic Load', 'error', 'Dynamic load failed');
+      document.head.appendChild(script);
+    }
+
+    function testMultipleLoad() {
+      // Test loading multiple instances
+      for (let i = 0; i < 3; i++) {
+        setTimeout(() => {
+          const script = document.createElement('script');
+          script.src = '/widget/dist/feedloop-widget.min.js';
+          script.setAttribute('data-project-key', `test-multi-${i}-${Date.now()}`);
+          script.onload = () => addResult('Multiple Load', 'success', `Instance ${i + 1} loaded`);
+          script.onerror = () => addResult('Multiple Load', 'error', `Instance ${i + 1} failed`);
+          document.head.appendChild(script);
+        }, i * 500);
+      }
+    }
+
+    function testRemoveAndReload() {
+      // Remove existing widgets
+      const widgets = document.querySelectorAll('.feedloop-widget-container');
+      widgets.forEach(widget => widget.remove());
+
+      // Remove scripts
+      const scripts = document.querySelectorAll('script[data-project-key]');
+      scripts.forEach(script => script.remove());
+
+      addResult('Remove & Reload', 'success', 'Widgets removed');
+
+      // Reload after 1 second
+      setTimeout(() => {
+        const script = document.createElement('script');
+        script.src = '/widget/dist/feedloop-widget.min.js';
+        script.setAttribute('data-project-key', 'test-reload-' + Date.now());
+        script.onload = () => addResult('Remove & Reload', 'success', 'Widget reloaded successfully');
+        script.onerror = () => addResult('Remove & Reload', 'error', 'Reload failed');
+        document.head.appendChild(script);
+      }, 1000);
+    }
+
+    // Test viewport visibility
+    function checkButtonVisibility() {
+      const button = document.querySelector('.feedloop-trigger-btn');
+      if (button) {
+        const rect = button.getBoundingClientRect();
+        const visible = rect.right <= window.innerWidth && rect.bottom <= window.innerHeight;
+        addResult('Visibility Check', visible ? 'success' : 'error',
+          `Button ${visible ? 'is' : 'is NOT'} fully visible (right: ${rect.right}, bottom: ${rect.bottom})`);
+      }
+    }
+
+    // Check visibility every 5 seconds
+    setInterval(checkButtonVisibility, 5000);
+
+    // Initial load test
+    window.addEventListener('load', () => {
+      setTimeout(testStaticLoad, 1000);
+    });
+  </script>
+</body>
+</html>

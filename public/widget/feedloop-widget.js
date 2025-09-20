@@ -15,6 +15,7 @@
   // Capture script tag immediately while currentScript is still available
   const SCRIPT_TAG = document.currentScript || document.querySelector('script[data-project-key]');
   const PROJECT_KEY = SCRIPT_TAG ? SCRIPT_TAG.getAttribute('data-project-key') : null;
+  const SCRIPT_NONCE = SCRIPT_TAG ? SCRIPT_TAG.getAttribute('nonce') : null;
 
   // Debug logging for project key extraction
   console.log('FeeDLooP Debug: Script tag detection');
@@ -22,6 +23,7 @@
   console.log('- querySelector result:', document.querySelector('script[data-project-key]'));
   console.log('- SCRIPT_TAG:', SCRIPT_TAG);
   console.log('- PROJECT_KEY extracted:', PROJECT_KEY);
+  console.log('- SCRIPT_NONCE extracted:', SCRIPT_NONCE);
 
   // Widget state
   let widgetState = {
@@ -47,6 +49,12 @@
     styleSheet.id = 'feedloop-widget-styles';
     styleSheet.rel = 'stylesheet';
     styleSheet.href = WIDGET_API_BASE + '/widget/widget.css';
+
+    // Apply nonce if available for CSP compliance
+    if (SCRIPT_NONCE) {
+      styleSheet.setAttribute('nonce', SCRIPT_NONCE);
+    }
+
     document.head.appendChild(styleSheet);
   }
 
@@ -238,6 +246,12 @@
 
   // Initialize widget
   function initWidget() {
+    // Check if widget already exists (double-check for safety)
+    if (document.getElementById(WIDGET_NAMESPACE)) {
+      console.log('FeeDLooP: Widget container already exists, skipping initialization');
+      return;
+    }
+
     // Debug logging
     console.log('FeeDLooP Debug: initWidget called');
     console.log('- widgetState.projectKey:', widgetState.projectKey);
@@ -907,11 +921,57 @@
     widget.querySelectorAll('.feedloop-field-error').forEach(el => el.textContent = '');
   }
 
+  // Ensure button visibility
+  function ensureButtonVisibility() {
+    const widget = document.querySelector('.feedloop-widget-container');
+    const button = widget?.querySelector('.feedloop-trigger-btn');
+
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // Check if button extends beyond viewport
+    if (rect.right > viewportWidth) {
+      const overflow = rect.right - viewportWidth + 10; // 10px margin
+      widget.style.right = `${20 + overflow}px`;
+      console.log('FeeDLooP: Adjusted widget position for visibility');
+    }
+
+    if (rect.bottom > viewportHeight) {
+      const overflow = rect.bottom - viewportHeight + 10;
+      widget.style.bottom = `${20 + overflow}px`;
+      console.log('FeeDLooP: Adjusted widget vertical position for visibility');
+    }
+  }
+
+  // Check button visibility on resize and orientation change
+  function setupVisibilityChecks() {
+    ensureButtonVisibility();
+    window.addEventListener('resize', ensureButtonVisibility);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(ensureButtonVisibility, 500); // Delay for orientation change
+    });
+  }
+
+  // Singleton pattern - only initialize once
+  function initOnce() {
+    // Check if widget already exists
+    if (document.getElementById(WIDGET_NAMESPACE)) {
+      console.log('FeeDLooP: Widget already initialized, skipping duplicate initialization');
+      return;
+    }
+
+    initWidget();
+    setupVisibilityChecks();
+  }
+
   // Initialize on DOM ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initWidget);
+    document.addEventListener('DOMContentLoaded', initOnce);
   } else {
-    initWidget();
+    initOnce();
   }
 
   // Export for testing

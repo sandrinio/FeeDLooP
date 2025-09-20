@@ -134,7 +134,7 @@ export default function ProjectDetailPage() {
   }
 
   const copyWidgetScript = async () => {
-    const script = `<script src="https://your-domain.com/widget/feedloop-widget.js" data-project-key="${project?.integration_key}"></script>`
+    const script = `<script src="https://your-domain.com/widget/dist/feedloop-widget.min.js" data-project-key="${project?.integration_key}"></script>`
     try {
       await navigator.clipboard.writeText(script)
       setCopied(true)
@@ -301,7 +301,7 @@ export default function ProjectDetailPage() {
                   <div className="bg-gray-100 rounded-md p-3">
                     <pre className="text-sm text-gray-800 whitespace-pre-wrap">
 {`<script
-  src="https://your-domain.com/widget/feedloop-widget.js"
+  src="https://your-domain.com/widget/dist/feedloop-widget.min.js"
   data-project-key="${project.integration_key}">
 </script>`}
                     </pre>
@@ -313,6 +313,48 @@ export default function ProjectDetailPage() {
                     <ClipboardDocumentIcon className="h-4 w-4 mr-2" />
                     Copy Widget Code
                   </button>
+
+                  {/* Implementation Instructions */}
+                  <div className="mt-4 p-3 bg-blue-50 rounded-md">
+                    <h4 className="text-sm font-medium text-blue-900 mb-2">How to Install:</h4>
+                    <ul className="text-sm text-blue-800 space-y-1">
+                      <li>• <strong>HTML:</strong> Paste before closing &lt;/body&gt; tag</li>
+                      <li>• <strong>React/Next.js:</strong> Add to your main layout component</li>
+                      <li>• <strong>WordPress:</strong> Add to footer.php or use a plugin</li>
+                      <li>• <strong>Single Page Apps:</strong> Include in your main app component</li>
+                    </ul>
+                    <p className="text-xs text-blue-700 mt-2">
+                      The widget automatically appears as a feedback button in the bottom-right corner.
+                    </p>
+                  </div>
+
+                  {/* CSP Configuration Guide */}
+                  <div className="mt-3 p-4 bg-amber-50 border border-amber-200 rounded-md">
+                    <h4 className="text-sm font-medium text-amber-800 mb-3">🔒 Content Security Policy (CSP) Setup</h4>
+
+                    <div className="space-y-3">
+                      <div>
+                        <h5 className="text-xs font-semibold text-amber-900 mb-1">Option 1: Add Domain (Recommended)</h5>
+                        <div className="bg-amber-100 p-2 rounded text-xs font-mono text-amber-900 overflow-x-auto">
+                          script-src 'self' https://feedloop.soula.ge;<br/>
+                          connect-src 'self' https://feedloop.soula.ge;
+                        </div>
+                      </div>
+
+                      <div>
+                        <h5 className="text-xs font-semibold text-amber-900 mb-1">Option 2: Use Nonce</h5>
+                        <div className="bg-amber-100 p-2 rounded text-xs font-mono text-amber-900 overflow-x-auto">
+                          &lt;script nonce="SERVER_NONCE"<br/>
+                          &nbsp;&nbsp;src="https://feedloop.soula.ge/widget/dist/feedloop-widget.min.js"<br/>
+                          &nbsp;&nbsp;data-project-key="{project.integration_key}"&gt;&lt;/script&gt;
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-amber-700">
+                        If you get "CSP violation" errors, add these directives to your Content-Security-Policy header.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

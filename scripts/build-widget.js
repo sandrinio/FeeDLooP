@@ -79,8 +79,10 @@ function minifyCSS(css) {
 
 function minifyJS(js) {
   return js
-    // Remove single-line comments (but preserve URLs and regex)
+    // Remove single-line comments (entire line comments only)
     .replace(/^[\t ]*\/\/.*$/gm, '')
+    // Remove inline comments (at end of lines)
+    .replace(/([^:"])\/\/.*$/gm, '$1')
     // Remove multi-line comments
     .replace(/\/\*[\s\S]*?\*\//g, '')
     // Remove unnecessary whitespace (but preserve strings)
@@ -93,6 +95,8 @@ function minifyJS(js) {
     .replace(/}else/g, '}else ')
     .replace(/}catch/g, '}catch ')
     .replace(/}finally/g, '}finally ')
+    // Remove semicolons before closing braces
+    .replace(/;}/g, '}')
     // Remove leading/trailing whitespace
     .trim()
 }

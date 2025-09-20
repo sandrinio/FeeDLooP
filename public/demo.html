@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FeeDLooP Widget Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .feature {
+            padding: 1.5rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .feature h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .cta {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .cta h2 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: transform 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .demo-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .demo-section h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+
+        .notice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>FeeDLooP Widget Demo</h1>
+            <p>Experience our feedback collection widget in action. Click the feedback button on the right to test all features.</p>
+        </div>
+
+        <div class="content">
+            <h2>Welcome to the FeeDLooP Demo</h2>
+            <p>This demo page showcases the FeeDLooP feedback widget integrated into a simple website. The widget allows users to submit bug reports, feature requests, and general feedback with file attachments and automatic diagnostic data collection.</p>
+
+            <div class="demo-section">
+                <h3>🧪 Test the Widget</h3>
+                <p>Look for the <strong>"Feedback"</strong> button on the right edge of your screen. Click it to:</p>
+                <ul style="margin: 1rem 0; padding-left: 2rem;">
+                    <li>Submit different types of feedback (Bug, Initiative, Feedback)</li>
+                    <li>Upload images by drag & drop or clicking</li>
+                    <li>Paste images directly from clipboard</li>
+                    <li>Experience rich text editing</li>
+                    <li>See automatic diagnostic data collection</li>
+                </ul>
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature">
+                    <h3>🐛 Bug Reporting</h3>
+                    <p>Users can report bugs with priority levels, detailed descriptions, and automatic browser diagnostic data collection.</p>
+                </div>
+
+                <div class="feature">
+                    <h3>💡 Feature Requests</h3>
+                    <p>Collect feature requests and initiatives from your users with rich text descriptions and supporting materials.</p>
+                </div>
+
+                <div class="feature">
+                    <h3>💬 General Feedback</h3>
+                    <p>Gather general feedback, suggestions, and user experience insights to improve your product.</p>
+                </div>
+
+                <div class="feature">
+                    <h3>📎 File Attachments</h3>
+                    <p>Support for image uploads up to 5 files per submission with drag & drop and clipboard paste functionality.</p>
+                </div>
+
+                <div class="feature">
+                    <h3>🔍 Auto Diagnostics</h3>
+                    <p>Automatically collect browser information, console logs, and network requests to help debug issues.</p>
+                </div>
+
+                <div class="feature">
+                    <h3>🎨 Customizable</h3>
+                    <p>Widget integrates seamlessly with any website design and maintains CSS isolation to prevent conflicts.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="cta">
+            <h2>Ready to integrate FeeDLooP?</h2>
+            <p>Add the feedback widget to your website with just one line of code:</p>
+
+            <div class="demo-section">
+                <code>&lt;script src="/widget/dist/feedloop-widget.min.js" data-project-key="YOUR_KEY"&gt;&lt;/script&gt;</code>
+                <p style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">
+                    <em>Production URL: https://feedloop.soula.ge/widget/feedloop-widget.js</em>
+                </p>
+            </div>
+
+            <div class="notice">
+                <strong>Note:</strong> This demo uses project key <code>qqa6gF2deJypP3VKEYODxu31yQLaygYz</code> for testing purposes.
+            </div>
+
+            <a href="#" class="btn">Get Started</a>
+        </div>
+    </div>
+
+    <!-- FeeDLooP Widget Integration -->
+    <script src="/widget/dist/feedloop-widget.min.js" data-project-key="qqa6gF2deJypP3VKEYODxu31yQLaygYz"></script>
+</body>
+</html>

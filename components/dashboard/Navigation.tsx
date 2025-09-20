@@ -58,6 +58,11 @@ export default function Navigation({ user }: NavigationProps) {
             </button>
 
             <div className="flex-shrink-0 flex items-center ml-4 lg:ml-0">
+              <img
+                src="/just_logo.png"
+                alt="FeeDLooP"
+                className="h-8 w-auto mr-3"
+              />
               <h1 className="text-xl font-bold text-gray-900">
                 FeeDLooP
               </h1>

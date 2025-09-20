@@ -34,16 +34,17 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  border-radius: 50px;
+  border-radius: 50px 0 0 50px;
   cursor: pointer;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
   font-size: 14px;
   font-weight: 500;
+  transform: translateX(0);
 }
 
 .feedloop-trigger-btn:hover {
-  transform: translateY(-2px);
+  transform: translateX(0) translateY(-2px);
   box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
