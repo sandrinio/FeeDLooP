@@ -134,7 +134,7 @@ export default function ProjectDetailPage() {
   }
 
   const copyWidgetScript = async () => {
-    const script = `<script src="https://your-domain.com/widget/dist/feedloop-widget.min.js" data-project-key="${project?.integration_key}"></script>`
+    const script = `<script src="https://feedloop.soula.ge/widget/dist/feedloop-widget.min.js" data-project-key="${project?.integration_key}"></script>`
     try {
       await navigator.clipboard.writeText(script)
       setCopied(true)
@@ -301,7 +301,7 @@ export default function ProjectDetailPage() {
                   <div className="bg-gray-100 rounded-md p-3">
                     <pre className="text-sm text-gray-800 whitespace-pre-wrap">
 {`<script
-  src="https://your-domain.com/widget/dist/feedloop-widget.min.js"
+  src="https://feedloop.soula.ge/widget/dist/feedloop-widget.min.js"
   data-project-key="${project.integration_key}">
 </script>`}
                     </pre>
