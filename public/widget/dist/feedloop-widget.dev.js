@@ -1,6 +1,6 @@
 
-// FeeDLooP Widget v0.1.0 (Build: mfrxaigk)
-// Built on: 2025-09-20T07:04:09.721Z
+// FeeDLooP Widget v0.1.0 (Build: mfrxhy2k)
+// Built on: 2025-09-20T07:09:56.545Z
 // For more info: https://feedloop.com
 
 (function() {
@@ -58,7 +58,7 @@
     const styleSheet = document.createElement('link');
     styleSheet.id = 'feedloop-widget-styles';
     styleSheet.rel = 'stylesheet';
-    styleSheet.href = WIDGET_API_BASE + '/widget/widget.css';
+    styleSheet.href = WIDGET_API_BASE + '/widget/dist/widget.css';
 
     // Apply nonce if available for CSP compliance
     if (SCRIPT_NONCE) {

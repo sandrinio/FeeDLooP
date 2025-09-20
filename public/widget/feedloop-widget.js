@@ -48,7 +48,7 @@
     const styleSheet = document.createElement('link');
     styleSheet.id = 'feedloop-widget-styles';
     styleSheet.rel = 'stylesheet';
-    styleSheet.href = WIDGET_API_BASE + '/widget/widget.css';
+    styleSheet.href = WIDGET_API_BASE + '/widget/dist/widget.css';
 
     // Apply nonce if available for CSP compliance
     if (SCRIPT_NONCE) {
