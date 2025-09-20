@@ -5,7 +5,7 @@
 <!-- CDN Usage with integrity check -->
 <script
   src="https://your-domain.com/widget/dist/feedloop-widget.min.js"
-  integrity="sha384-btsg6rYjNvHhjYNxt4miVqiqoPmdnbjKrkDu4p/dYUA2beIieB0NOsvwLGTu/aKZ"
+  integrity="sha384-RxhPwoqSddX8QbTZcUK1LnRjVKaPooYskVLcNHJDLbBy45aYh/PSjrwdEMf5angu"
   crossorigin="anonymous"
   data-project-key="YOUR_PROJECT_KEY"
 ></script>
@@ -34,6 +34,6 @@
 
 ## Build Information
 - Version: 0.1.0
-- Build ID: mfrbzb6k
-- Built: 2025-09-19T21:07:35.137Z
+- Build ID: mfrxaigk
+- Built: 2025-09-20T07:04:09.719Z
 - Production Size: 30.14 KB

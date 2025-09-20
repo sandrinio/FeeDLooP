@@ -1,6 +1,6 @@
 
-// FeeDLooP Widget v0.1.0 (Build: mfrbzb6k)
-// Built on: 2025-09-19T21:07:35.139Z
+// FeeDLooP Widget v0.1.0 (Build: mfrxaigk)
+// Built on: 2025-09-20T07:04:09.721Z
 // For more info: https://feedloop.com
 
 (function() {

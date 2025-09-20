@@ -321,6 +321,12 @@ async function main() {
     // Setup
     createBuildDirectory()
 
+    // Copy CSS file to dist folder for external loading
+    const cssSourcePath = path.join(config.sourceDir, config.files.css)
+    const cssDestPath = path.join(config.buildDir, 'widget.css')
+    fs.copyFileSync(cssSourcePath, cssDestPath)
+    log('📄 Copied CSS file to dist folder', colors.blue)
+
     // Build both versions
     const prodBuildInfo = buildProduction()
     const devBuildInfo = buildDevelopment()

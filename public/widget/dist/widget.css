@@ -1,0 +1,559 @@
+/**
+ * FeeDLooP Widget CSS with Scoped Styling
+ * T064: Widget CSS with scoped styling
+ * Isolated styles to prevent conflicts with host site
+ */
+
+/* Reset and scope all widget styles */
+.feedloop-widget-container,
+.feedloop-widget-container * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.5;
+}
+
+/* Widget Container */
+.feedloop-widget-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999999;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Trigger Button */
+.feedloop-trigger-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 50px 0 0 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 500;
+  transform: translateX(0);
+}
+
+.feedloop-trigger-btn:hover {
+  transform: translateX(0) translateY(-2px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.feedloop-trigger-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+}
+
+.feedloop-trigger-text {
+  display: inline-block;
+}
+
+/* Hide trigger when widget is open */
+.feedloop-widget-container[data-state="open"] .feedloop-trigger-btn {
+  display: none;
+}
+
+/* Main Panel */
+.feedloop-panel {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 400px;
+  max-width: calc(100vw - 40px);
+  max-height: 600px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.feedloop-widget-container[data-state="open"] .feedloop-panel {
+  display: flex;
+  animation: feedloop-slide-up 0.3s ease-out;
+}
+
+.feedloop-widget-container[data-minimized="true"] .feedloop-panel {
+  max-height: 50px;
+}
+
+@keyframes feedloop-slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Header */
+.feedloop-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.feedloop-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.feedloop-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.feedloop-minimize-btn,
+.feedloop-close-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: white;
+}
+
+.feedloop-minimize-btn:hover,
+.feedloop-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Content */
+.feedloop-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.feedloop-widget-container[data-minimized="true"] .feedloop-content {
+  display: none;
+}
+
+/* Report Type Selector */
+.feedloop-type-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.feedloop-type-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  background: #f7f7f7;
+  border: 2px solid #e5e5e5;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 12px;
+  color: #666;
+}
+
+.feedloop-type-btn:hover {
+  background: #f0f0f0;
+  border-color: #d0d0d0;
+}
+
+.feedloop-type-btn.active {
+  background: #f0f4ff;
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.feedloop-type-icon {
+  font-size: 20px;
+}
+
+/* Form Fields */
+.feedloop-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.feedloop-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feedloop-field label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+}
+
+.feedloop-field input[type="text"],
+.feedloop-field input[type="email"],
+.feedloop-field select {
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+  background: white;
+}
+
+.feedloop-field input:focus,
+.feedloop-field select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.feedloop-field input.error,
+.feedloop-field .feedloop-editor.error {
+  border-color: #ef4444;
+}
+
+.feedloop-field-error {
+  font-size: 12px;
+  color: #ef4444;
+  min-height: 16px;
+}
+
+/* Field Group */
+.feedloop-field-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Rich Text Editor */
+.feedloop-rich-text {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.feedloop-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  background: #f7f7f7;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.feedloop-tool {
+  min-width: 32px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #555;
+  transition: all 0.2s;
+  padding: 0 6px;
+}
+
+.feedloop-tool:hover {
+  background: #f0f0f0;
+  border-color: #b0b0b0;
+}
+
+.feedloop-editor {
+  min-height: 120px;
+  max-height: 250px;
+  padding: 16px 16px 16px 24px;
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.6;
+  background: white;
+  border: none;
+  resize: none;
+}
+
+.feedloop-editor ul {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+
+.feedloop-editor ol {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+
+.feedloop-editor li {
+  margin: 4px 0;
+}
+
+.feedloop-editor:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 1px #667eea;
+}
+
+.feedloop-editor[data-placeholder]:empty:before {
+  content: attr(data-placeholder);
+  color: #999;
+}
+
+/* File Attachments */
+.feedloop-attachments {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Removed attach button styles - now using clickable drop zone */
+
+/* Drop Zone */
+.feedloop-drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  border: 2px dashed #d0d0d0;
+  border-radius: 8px;
+  background: #fafafa;
+  transition: all 0.2s;
+  text-align: center;
+  cursor: pointer;
+}
+
+.feedloop-drop-zone:hover {
+  border-color: #667eea;
+  background: #f8faff;
+}
+
+.feedloop-drop-zone.drag-over {
+  border-color: #667eea;
+  background: #f0f4ff;
+  transform: scale(1.02);
+}
+
+.feedloop-drop-text {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.feedloop-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feedloop-file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f7f7f7;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.feedloop-file-name {
+  flex: 1;
+  color: #555;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feedloop-file-size {
+  color: #999;
+  font-size: 12px;
+}
+
+.feedloop-file-remove {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e0e0e0;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.feedloop-file-remove:hover {
+  background: #d0d0d0;
+  color: #333;
+}
+
+/* Notice */
+.feedloop-notice {
+  padding: 10px;
+  background: #f0f4ff;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #555;
+}
+
+/* Actions */
+.feedloop-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.feedloop-cancel-btn,
+.feedloop-submit-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.feedloop-cancel-btn {
+  background: white;
+  color: #666;
+  border: 1px solid #e0e0e0;
+}
+
+.feedloop-cancel-btn:hover {
+  background: #f7f7f7;
+  border-color: #d0d0d0;
+}
+
+.feedloop-submit-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.feedloop-submit-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.feedloop-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Messages */
+.feedloop-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  margin: 20px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.feedloop-success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.feedloop-success svg {
+  fill: #10b981;
+  flex-shrink: 0;
+}
+
+.feedloop-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.feedloop-error svg {
+  fill: #ef4444;
+  flex-shrink: 0;
+}
+
+/* Loading State */
+.feedloop-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.feedloop-loading::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: feedloop-spin 0.6s linear infinite;
+}
+
+@keyframes feedloop-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .feedloop-widget-container {
+    bottom: 0;
+    right: 0;
+    left: 0;
+  }
+
+  .feedloop-trigger-btn {
+    bottom: 20px;
+    right: 20px;
+    position: fixed;
+  }
+
+  .feedloop-panel {
+    width: 100%;
+    max-width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .feedloop-field-group {
+    grid-template-columns: 1fr;
+  }
+
+  .feedloop-type-btn {
+    font-size: 11px;
+    padding: 10px 4px;
+  }
+
+  .feedloop-type-icon {
+    font-size: 18px;
+  }
+}
+
+/* Print styles - hide widget */
+@media print {
+  .feedloop-widget-container {
+    display: none !important;
+  }
+}
