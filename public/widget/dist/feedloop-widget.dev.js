@@ -1,6 +1,6 @@
 
-// FeeDLooP Widget v0.1.0 (Build: mftzjvjy)
-// Built on: 2025-09-21T17:42:58.179Z
+// FeeDLooP Widget v0.1.0 (Build: mftzrspo)
+// Built on: 2025-09-21T17:49:07.745Z
 // For more info: https://feedloop.com
 
 (function() {
@@ -1607,12 +1607,14 @@
         return response;
       }
 
-      // Check if it's a validation error related to enhanced fields
+      // Check if it's an error that could be related to enhanced fields
       const responseText = await response.text();
       console.log('FeeDLooP Debug: Enhanced submission failed:', responseText);
 
-      if (response.status === 400 && responseText.toLowerCase().includes('validation')) {
-        console.log('FeeDLooP Debug: Detected validation failure, attempting backwards-compatible mode');
+      // Try fallback for both validation errors (400) and server errors (500) that might be caused by enhanced fields
+      if ((response.status === 400 && responseText.toLowerCase().includes('validation')) ||
+          (response.status === 500 && responseText.toLowerCase().includes('error'))) {
+        console.log('FeeDLooP Debug: Detected submission failure, attempting backwards-compatible mode');
 
         // Second attempt: Fallback to basic mode without enhanced fields
         const basicResponse = await attemptSubmission(data, false);
