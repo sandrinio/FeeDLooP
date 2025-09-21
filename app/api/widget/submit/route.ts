@@ -348,7 +348,7 @@ export async function POST(request: NextRequest) {
             original_filename: originalFilename,
             content_type: validAttachment.content_type,
             size: validAttachment.size,
-            url: uploadResult.url,
+            file_url: uploadResult.url,
             storage_path: storagePath,
             status: 'ready',
             scan_status: 'pending',
@@ -376,7 +376,7 @@ export async function POST(request: NextRequest) {
             id: dbAttachment.id,
             filename: dbAttachment.filename,
             original_filename: dbAttachment.original_filename,
-            url: dbAttachment.url,
+            url: dbAttachment.file_url,
             size: dbAttachment.size,
             content_type: dbAttachment.content_type
           })
