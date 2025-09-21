@@ -1,0 +1,1930 @@
+openapi: 3.0.3
+info:
+  title: FeeDLooP API
+  description: |
+    FeeDLooP is a feedback collection service for software development companies. It provides APIs for managing projects, collecting feedback through embeddable widgets, and managing bug reports, initiatives, and feedback submissions.
+
+    ## Authentication
+    Most endpoints require authentication using NextAuth.js session cookies. The widget submission endpoint is public to allow embedding.
+
+    ## Rate Limiting
+    API endpoints implement rate limiting to prevent abuse. Refer to security documentation for specific limits.
+
+    ## CORS
+    Different CORS policies are applied based on endpoint:
+    - Widget endpoints: Permissive CORS for embedding
+    - Dashboard/API endpoints: Restrictive CORS for security
+
+    ## Widget Integration
+    The embeddable widget uses the `/api/widget/submit` endpoint to submit feedback from any website. See the Framework Integration Guide for implementation details.
+
+  version: 1.0.0
+  contact:
+    name: FeeDLooP API Support
+    url: https://github.com/your-org/feedloop
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://localhost:3000
+    description: Development server
+  - url: https://localhost:3001
+    description: Alternative development server
+  - url: https://your-domain.com
+    description: Production server
+
+tags:
+  - name: Widget
+    description: Public endpoints for embeddable feedback widget
+  - name: Projects
+    description: Project management operations
+  - name: Reports
+    description: Feedback, bug reports, and initiatives management
+  - name: Attachments
+    description: File upload and management
+  - name: Authentication
+    description: User authentication and registration
+  - name: Health
+    description: System health and monitoring
+
+paths:
+  # Widget Endpoints
+  /api/widget/submit:
+    post:
+      tags:
+        - Widget
+      summary: Submit feedback from widget
+      description: |
+        Accepts feedback submissions from the embeddable JavaScript widget. This endpoint supports multipart form data with file attachments and compressed diagnostic data.
+
+        **Features:**
+        - Accepts bug reports, initiatives, and feedback
+        - Supports up to 5 file attachments (max 5MB each)
+        - Handles compressed diagnostic data (gzip)
+        - Validates project key
+        - Public endpoint (no authentication required)
+
+        **Security:**
+        - Input validation and sanitization
+        - File type validation
+        - CORS headers for embedding
+        - Rate limiting protection
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - project_key
+                - type
+                - title
+                - description
+              properties:
+                project_key:
+                  type: string
+                  pattern: '^[a-zA-Z0-9]{16,32}$'
+                  description: Unique project integration key
+                  example: "test-project-key-12345678"
+                type:
+                  type: string
+                  enum: [bug, initiative, feedback]
+                  description: Type of feedback being submitted
+                  example: "bug"
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                  description: Brief title describing the feedback
+                  example: "Page loading issue on checkout"
+                description:
+                  type: string
+                  minLength: 1
+                  maxLength: 5000
+                  description: Detailed description of the feedback
+                  example: "The checkout page takes too long to load on mobile devices"
+                reporter_name:
+                  type: string
+                  maxLength: 100
+                  description: Optional name of the person submitting feedback
+                  example: "John Doe"
+                reporter_email:
+                  type: string
+                  format: email
+                  maxLength: 255
+                  description: Optional email of the person submitting feedback
+                  example: "john@example.com"
+                priority:
+                  type: string
+                  enum: [low, medium, high, critical]
+                  description: Priority level (defaults to medium)
+                  example: "medium"
+                url:
+                  type: string
+                  format: uri
+                  maxLength: 2000
+                  description: URL where the feedback was submitted from
+                  example: "https://example.com/checkout"
+                user_agent:
+                  type: string
+                  maxLength: 500
+                  description: Browser user agent string
+                  example: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                console_logs:
+                  type: string
+                  description: JSON string of console errors and logs
+                network_requests:
+                  type: string
+                  description: JSON string of network request data
+                diagnostic_data:
+                  type: string
+                  description: Uncompressed diagnostic data as JSON string
+                diagnostic_data_compressed:
+                  type: string
+                  description: Base64 encoded gzip compressed diagnostic data
+                compression_type:
+                  type: string
+                  enum: [gzip]
+                  description: Compression algorithm used
+                attachments:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  maxItems: 5
+                  description: File attachments (max 5 files, 5MB each)
+            encoding:
+              attachments:
+                contentType: image/*, application/pdf, text/*
+      responses:
+        '201':
+          description: Feedback submitted successfully
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+              description: CORS header for widget embedding
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Feedback submitted successfully"
+                  report_id:
+                    type: string
+                    format: uuid
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+                  attachments_uploaded:
+                    type: integer
+                    example: 2
+                  total_attachments:
+                    type: integer
+                    example: 3
+                  attachments:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AttachmentResponse'
+                  attachment_errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        filename:
+                          type: string
+                        error:
+                          type: string
+        '400':
+          description: Validation failed or invalid project key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                validation_error:
+                  summary: Validation error
+                  value:
+                    error: "Validation failed"
+                    details:
+                      - field: "title"
+                        message: "Title is required"
+                invalid_project:
+                  summary: Invalid project key
+                  value:
+                    error: "Invalid project key"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    options:
+      tags:
+        - Widget
+      summary: CORS preflight for widget submissions
+      description: Handles CORS preflight requests for widget embedding
+      responses:
+        '200':
+          description: CORS preflight response
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+              description: Allowed origins for CORS
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+              description: Allowed HTTP methods
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+              description: Allowed headers
+
+  # Project Management
+  /api/projects:
+    get:
+      tags:
+        - Projects
+      summary: List user projects
+      description: |
+        Returns all projects where the authenticated user is either the owner or a team member.
+        Projects are sorted by creation date (newest first).
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - Projects
+      summary: Create new project
+      description: |
+        Creates a new project with the authenticated user as the owner.
+        Generates a unique integration key for widget embedding.
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  description: Project name
+                  example: "My Website Feedback"
+      responses:
+        '201':
+          description: Project created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Project name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/projects/{id}:
+    get:
+      tags:
+        - Projects
+      summary: Get project details
+      description: Returns detailed information about a specific project
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Project ID
+      responses:
+        '200':
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDetail'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - Projects
+      summary: Update project
+      description: Updates project information (owner only)
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Project ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  description: Project name
+      responses:
+        '200':
+          description: Project updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDetail'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Projects
+      summary: Delete project
+      description: Permanently deletes a project and all associated data (owner only)
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Project ID
+      responses:
+        '204':
+          description: Project deleted successfully
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/projects/{id}/reports:
+    get:
+      tags:
+        - Reports
+      summary: List project reports
+      description: |
+        Returns paginated list of reports for a project with filtering and sorting options.
+        Supports searching, filtering by type/status/priority, and date range filtering.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Project ID
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [bug, initiative, feedback]
+          description: Filter by report type
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, archived]
+          description: Filter by report status
+        - name: priority
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+          description: Filter by priority
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 100
+          description: Search in title and description
+        - name: from_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter reports created after this date
+        - name: to_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter reports created before this date
+        - name: assigned_to
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by assigned user
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of results per page
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum: [created_at, updated_at, priority, status, title]
+            default: created_at
+          description: Field to sort by
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order
+      responses:
+        '200':
+          description: Paginated list of reports
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reports:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReportListItem'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInfo'
+                  filters:
+                    type: object
+                    description: Applied filters
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - Reports
+      summary: Create new report
+      description: |
+        Creates a new report in the project. This is for authenticated dashboard users.
+        Widget submissions use the /api/widget/submit endpoint.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Project ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReportRequest'
+      responses:
+        '201':
+          description: Report created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportDetail'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/projects/{id}/reports/{reportId}:
+    get:
+      tags:
+        - Reports
+      summary: Get report details
+      description: Returns detailed information about a specific report including attachments
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Project ID
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Report ID
+      responses:
+        '200':
+          description: Report details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportDetail'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - Reports
+      summary: Update report
+      description: Updates report information (project members only)
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Project ID
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Report ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReportRequest'
+      responses:
+        '200':
+          description: Report updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportDetail'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Reports
+      summary: Delete report
+      description: Permanently deletes a report and associated attachments (project members only)
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Project ID
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Report ID
+      responses:
+        '204':
+          description: Report deleted successfully
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/projects/{id}/export:
+    get:
+      tags:
+        - Projects
+      summary: Export project reports
+      description: |
+        Exports project reports in CSV format suitable for import into Jira, Azure DevOps, or other project management tools.
+        Supports filtering parameters to export specific subsets of reports.
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Project ID
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [csv]
+            default: csv
+          description: Export format
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [bug, initiative, feedback]
+          description: Filter by report type
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, archived]
+          description: Filter by report status
+        - name: from_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Export reports created after this date
+        - name: to_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Export reports created before this date
+      responses:
+        '200':
+          description: CSV export file
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+              example: |
+                ID,Type,Title,Description,Status,Priority,Created At,Reporter
+                123e4567-...,bug,"Login issue","Cannot login with Google",active,high,2023-12-01T10:00:00Z,john@example.com
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+              description: Attachment filename
+              example: "attachment; filename=feedloop-export-2023-12-01.csv"
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/projects/{id}/invitations:
+    get:
+      tags:
+        - Projects
+      summary: List project invitations
+      description: Returns list of team members and pending invitations for the project
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Project ID
+      responses:
+        '200':
+          description: List of invitations and team members
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  members:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TeamMember'
+                  pending_invitations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PendingInvitation'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied (owner only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - Projects
+      summary: Invite user to project
+      description: Sends an invitation to a user to join the project team
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Project ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - role
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email address of user to invite
+                role:
+                  type: string
+                  enum: [member, admin]
+                  description: Role to assign to the user
+                  default: member
+      responses:
+        '201':
+          description: Invitation sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PendingInvitation'
+        '400':
+          description: Validation failed or user already invited
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied (owner only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # File Upload
+  /api/uploads:
+    post:
+      tags:
+        - Attachments
+      summary: Upload files
+      description: |
+        Uploads files to be attached to reports. Supports multiple file types with validation.
+        Files are stored in MinIO and associated with reports via attachment records.
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - files
+                - project_id
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  maxItems: 5
+                  description: Files to upload (max 5 files, 5MB each)
+                project_id:
+                  type: string
+                  format: uuid
+                  description: Project ID for the upload
+                report_id:
+                  type: string
+                  format: uuid
+                  description: Optional report ID to associate files with
+            encoding:
+              files:
+                contentType: image/*, application/pdf, text/*, application/zip
+      responses:
+        '201':
+          description: Files uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uploaded_files:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AttachmentResponse'
+                  failed_uploads:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        filename:
+                          type: string
+                        error:
+                          type: string
+        '400':
+          description: Validation failed or invalid file type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          description: File too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Authentication
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register new user
+      description: Creates a new user account with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - name
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User email address
+                password:
+                  type: string
+                  minLength: 8
+                  description: Password (minimum 8 characters)
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  description: Full name
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User registered successfully"
+                  user_id:
+                    type: string
+                    format: uuid
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: |
+        Authenticates a user with email and password. Returns session cookie.
+        This endpoint is typically handled by NextAuth.js.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Login successful"
+                  user:
+                    $ref: '#/components/schemas/User'
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: Session cookie
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Health Check
+  /api/health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Returns system health status including database and storage connectivity
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  services:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                        enum: [healthy, unhealthy]
+                      storage:
+                        type: string
+                        enum: [healthy, unhealthy]
+                      auth:
+                        type: string
+                        enum: [healthy, unhealthy]
+        '503':
+          description: System is unhealthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "unhealthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+                  errors:
+                    type: array
+                    items:
+                      type: string
+
+  # Test Endpoints (Development only)
+  /api/test-db:
+    get:
+      tags:
+        - Health
+      summary: Test database connection
+      description: Tests database connectivity (development only)
+      responses:
+        '200':
+          description: Database connection successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "connected"
+                  database:
+                    type: string
+                    example: "postgresql"
+        '500':
+          description: Database connection failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/test-verify-user:
+    get:
+      tags:
+        - Health
+      summary: Test user verification
+      description: Tests user authentication and session verification (development only)
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: User verification successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "verified"
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: next-auth.session-token
+      description: NextAuth.js session cookie
+
+  schemas:
+    # Core Domain Objects
+    Project:
+      type: object
+      required:
+        - id
+        - name
+        - owner_id
+        - integration_key
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique project identifier
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Project name
+        owner_id:
+          type: string
+          format: uuid
+          description: User ID of project owner
+        integration_key:
+          type: string
+          pattern: '^[a-zA-Z0-9]{16,32}$'
+          description: Unique key for widget integration
+        created_at:
+          type: string
+          format: date-time
+          description: Project creation timestamp
+
+    ProjectDetail:
+      allOf:
+        - $ref: '#/components/schemas/Project'
+        - type: object
+          properties:
+            updated_at:
+              type: string
+              format: date-time
+              description: Last update timestamp
+            team_members:
+              type: array
+              items:
+                $ref: '#/components/schemas/TeamMember'
+            report_counts:
+              type: object
+              properties:
+                total:
+                  type: integer
+                active:
+                  type: integer
+                archived:
+                  type: integer
+                by_type:
+                  type: object
+                  properties:
+                    bug:
+                      type: integer
+                    initiative:
+                      type: integer
+                    feedback:
+                      type: integer
+
+    ReportListItem:
+      type: object
+      required:
+        - id
+        - type
+        - title
+        - status
+        - priority
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique report identifier
+        type:
+          type: string
+          enum: [bug, initiative, feedback]
+          description: Type of report
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Report title
+        status:
+          type: string
+          enum: [active, archived]
+          description: Current status
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+          description: Priority level
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+        attachment_count:
+          type: integer
+          minimum: 0
+          description: Number of attachments
+        user_name:
+          type: string
+          nullable: true
+          description: Name of reporter (if provided)
+        user_email:
+          type: string
+          format: email
+          nullable: true
+          description: Email of reporter (if provided)
+
+    ReportDetail:
+      allOf:
+        - $ref: '#/components/schemas/ReportListItem'
+        - type: object
+          required:
+            - project_id
+            - description
+          properties:
+            project_id:
+              type: string
+              format: uuid
+              description: Associated project ID
+            description:
+              type: string
+              minLength: 1
+              maxLength: 5000
+              description: Detailed description
+            user_info:
+              $ref: '#/components/schemas/UserInfo'
+            diagnostic_data:
+              $ref: '#/components/schemas/DiagnosticData'
+            internal_notes:
+              type: string
+              maxLength: 2000
+              nullable: true
+              description: Internal team notes
+            resolution_notes:
+              type: string
+              maxLength: 2000
+              nullable: true
+              description: Resolution details
+            assigned_to:
+              type: string
+              format: uuid
+              nullable: true
+              description: Assigned team member ID
+            created_by:
+              type: string
+              format: uuid
+              nullable: true
+              description: User who created the report (null for widget submissions)
+            resolved_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: Resolution timestamp
+            attachments:
+              type: array
+              items:
+                $ref: '#/components/schemas/AttachmentResponse'
+
+    CreateReportRequest:
+      type: object
+      required:
+        - type
+        - title
+        - description
+      properties:
+        type:
+          type: string
+          enum: [bug, initiative, feedback]
+          description: Type of report
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Report title
+        description:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          description: Detailed description
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+          description: Priority level (defaults to medium)
+        user_info:
+          $ref: '#/components/schemas/UserInfo'
+        diagnostic_data:
+          $ref: '#/components/schemas/DiagnosticData'
+        internal_notes:
+          type: string
+          maxLength: 2000
+          description: Internal team notes
+
+    UpdateReportRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Report title
+        description:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          description: Detailed description
+        status:
+          type: string
+          enum: [active, archived]
+          description: Status update
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+          description: Priority level
+        internal_notes:
+          type: string
+          maxLength: 2000
+          nullable: true
+          description: Internal team notes
+        resolution_notes:
+          type: string
+          maxLength: 2000
+          nullable: true
+          description: Resolution details
+        assigned_to:
+          type: string
+          format: uuid
+          nullable: true
+          description: Assigned team member ID
+
+    UserInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          nullable: true
+          description: Reporter name
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          nullable: true
+          description: Reporter email
+        browser:
+          type: string
+          maxLength: 200
+          nullable: true
+          description: Browser information
+        os:
+          type: string
+          maxLength: 100
+          nullable: true
+          description: Operating system
+        url:
+          type: string
+          format: uri
+          maxLength: 2000
+          nullable: true
+          description: URL where feedback was submitted
+        screen_resolution:
+          type: string
+          pattern: '^\d+x\d+$'
+          nullable: true
+          description: Screen resolution (WIDTHxHEIGHT)
+        ip_address:
+          type: string
+          nullable: true
+          description: IP address of reporter
+
+    DiagnosticData:
+      type: object
+      properties:
+        user_agent:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Browser user agent
+        timestamp:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp of data collection
+        page_url:
+          type: string
+          format: uri
+          maxLength: 2000
+          nullable: true
+          description: Page URL
+        referrer:
+          type: string
+          format: uri
+          maxLength: 2000
+          nullable: true
+          description: Referrer URL
+        console_errors:
+          type: array
+          maxItems: 50
+          items:
+            type: string
+            maxLength: 1000
+          description: Console error messages
+        network_requests:
+          type: array
+          maxItems: 100
+          items:
+            type: object
+            required:
+              - url
+              - method
+              - status
+              - timestamp
+            properties:
+              url:
+                type: string
+                maxLength: 2000
+              method:
+                type: string
+                maxLength: 10
+              status:
+                type: integer
+                minimum: 100
+                maximum: 599
+              timestamp:
+                type: string
+                format: date-time
+              duration:
+                type: number
+                description: Request duration in milliseconds
+        local_storage:
+          type: object
+          additionalProperties:
+            type: string
+          description: Local storage data
+        session_storage:
+          type: object
+          additionalProperties:
+            type: string
+          description: Session storage data
+        viewport:
+          type: object
+          properties:
+            width:
+              type: integer
+              minimum: 1
+            height:
+              type: integer
+              minimum: 1
+        device:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [desktop, mobile, tablet]
+            touch:
+              type: boolean
+            orientation:
+              type: string
+              enum: [portrait, landscape]
+
+    AttachmentResponse:
+      type: object
+      required:
+        - id
+        - filename
+        - content_type
+        - size
+        - url
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique attachment identifier
+        filename:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Sanitized filename
+        original_filename:
+          type: string
+          description: Original filename before sanitization
+        content_type:
+          type: string
+          description: MIME type
+        size:
+          type: integer
+          minimum: 1
+          maximum: 5242880
+          description: File size in bytes (max 5MB)
+        url:
+          type: string
+          format: uri
+          description: Download URL
+        created_at:
+          type: string
+          format: date-time
+          description: Upload timestamp
+
+    TeamMember:
+      type: object
+      required:
+        - user_id
+        - email
+        - role
+        - joined_at
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User identifier
+        email:
+          type: string
+          format: email
+          description: User email
+        name:
+          type: string
+          nullable: true
+          description: User full name
+        role:
+          type: string
+          enum: [owner, admin, member]
+          description: Role in project
+        joined_at:
+          type: string
+          format: date-time
+          description: Date joined project
+
+    PendingInvitation:
+      type: object
+      required:
+        - id
+        - email
+        - role
+        - created_at
+        - expires_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Invitation identifier
+        email:
+          type: string
+          format: email
+          description: Invited email address
+        role:
+          type: string
+          enum: [admin, member]
+          description: Proposed role
+        created_at:
+          type: string
+          format: date-time
+          description: Invitation sent timestamp
+        expires_at:
+          type: string
+          format: date-time
+          description: Invitation expiry
+
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - name
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: User identifier
+        email:
+          type: string
+          format: email
+          description: User email address
+        name:
+          type: string
+          description: Full name
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+          description: Profile picture URL
+        created_at:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+          description: Last login timestamp
+
+    PaginationInfo:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - total_pages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          description: Current page number
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Items per page
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of items
+        total_pages:
+          type: integer
+          minimum: 0
+          description: Total number of pages
+        has_next:
+          type: boolean
+          description: Whether there are more pages
+        has_prev:
+          type: boolean
+          description: Whether there are previous pages
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Field that caused the error
+              message:
+                type: string
+                description: Specific error message
+          description: Detailed validation errors
+        code:
+          type: string
+          description: Error code for programmatic handling
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+
+  examples:
+    WidgetSubmissionSuccess:
+      summary: Successful widget feedback submission
+      value:
+        success: true
+        message: "Feedback submitted successfully"
+        report_id: "123e4567-e89b-12d3-a456-426614174000"
+        attachments_uploaded: 2
+        total_attachments: 2
+
+    ProjectListResponse:
+      summary: User's projects
+      value:
+        - id: "123e4567-e89b-12d3-a456-426614174000"
+          name: "My Website Feedback"
+          owner_id: "456e7890-e89b-12d3-a456-426614174001"
+          integration_key: "mywebsite1234567890abcdef"
+          created_at: "2023-12-01T10:00:00Z"
+        - id: "789e0123-e89b-12d3-a456-426614174002"
+          name: "Mobile App Issues"
+          owner_id: "456e7890-e89b-12d3-a456-426614174001"
+          integration_key: "mobileapp0987654321fedcba"
+          created_at: "2023-11-15T14:30:00Z"
+
+    ReportListResponse:
+      summary: Project reports with pagination
+      value:
+        reports:
+          - id: "report-1234-5678"
+            type: "bug"
+            title: "Login button not working"
+            status: "active"
+            priority: "high"
+            created_at: "2023-12-01T10:00:00Z"
+            updated_at: "2023-12-01T10:00:00Z"
+            attachment_count: 2
+            user_name: "John Doe"
+            user_email: "john@example.com"
+          - id: "report-2345-6789"
+            type: "feedback"
+            title: "Great user experience"
+            status: "active"
+            priority: "low"
+            created_at: "2023-11-30T15:30:00Z"
+            updated_at: "2023-11-30T15:30:00Z"
+            attachment_count: 0
+            user_name: "Jane Smith"
+            user_email: "jane@example.com"
+        pagination:
+          page: 1
+          limit: 20
+          total: 45
+          total_pages: 3
+          has_next: true
+          has_prev: false
+
+security:
+  - sessionAuth: []
+
+externalDocs:
+  description: FeeDLooP Documentation
+  url: https://github.com/your-org/feedloop/docs

@@ -66,8 +66,8 @@ test.describe('Reports Management', () => {
     await page.selectOption('select:near(:text("All Types"))', 'bug')
     await expect(page).toHaveURL(/type=bug/)
 
-    await page.selectOption('select:near(:text("All Types"))', 'feature')
-    await expect(page).toHaveURL(/type=feature/)
+    await page.selectOption('select:near(:text("All Types"))', 'initiative')
+    await expect(page).toHaveURL(/type=initiative/)
 
     await page.selectOption('select:near(:text("All Types"))', 'feedback')
     await expect(page).toHaveURL(/type=feedback/)
@@ -178,7 +178,7 @@ test.describe('Reports Management', () => {
   test('should maintain filter state in URL', async ({ page }) => {
     // Apply filters
     await page.selectOption('select:near(:text("All Statuses"))', 'resolved')
-    await page.selectOption('select:near(:text("All Types"))', 'feature')
+    await page.selectOption('select:near(:text("All Types"))', 'initiative')
 
     const currentUrl = page.url()
 
@@ -193,7 +193,7 @@ test.describe('Reports Management', () => {
     const typeSelect = page.locator('select').nth(1)
 
     await expect(statusSelect).toHaveValue('resolved')
-    await expect(typeSelect).toHaveValue('feature')
+    await expect(typeSelect).toHaveValue('initiative')
   })
 
   test('should navigate back to project overview', async ({ page }) => {

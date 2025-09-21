@@ -1,0 +1,405 @@
+openapi: 3.0.3
+info:
+  title: FeeDLooP Reports API Enhancements
+  description: Enhanced API endpoints for Reports Page modification feature
+  version: 1.1.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+
+paths:
+  /projects/{projectId}/reports:
+    get:
+      summary: Enhanced report listing with filtering and sorting
+      description: Get reports with enhanced filtering, sorting, and selection capabilities
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: filter[title]
+          in: query
+          description: Filter by report title (partial match)
+          schema:
+            type: string
+            minLength: 2
+        - name: filter[type]
+          in: query
+          description: Filter by report type
+          schema:
+            type: string
+            enum: [bug, initiative, feedback]
+        - name: filter[priority]
+          in: query
+          description: Filter by priority level
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+        - name: filter[reporter]
+          in: query
+          description: Filter by reporter name or email
+          schema:
+            type: string
+            minLength: 2
+        - name: filter[dateFrom]
+          in: query
+          description: Filter reports created after this date
+          schema:
+            type: string
+            format: date-time
+        - name: filter[dateTo]
+          in: query
+          description: Filter reports created before this date
+          schema:
+            type: string
+            format: date-time
+        - name: sort[column]
+          in: query
+          description: Column to sort by
+          schema:
+            type: string
+            enum: [title, type, priority, created_at, reporter_name]
+            default: created_at
+        - name: sort[direction]
+          in: query
+          description: Sort direction
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: include
+          in: query
+          description: Include additional fields for table display
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [console_logs_count, network_requests_count, attachments_count]
+      responses:
+        '200':
+          description: Enhanced reports list with metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reports:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReportTableItem'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  metadata:
+                    type: object
+                    properties:
+                      total_by_type:
+                        type: object
+                        properties:
+                          bug:
+                            type: integer
+                          initiative:
+                            type: integer
+                          feedback:
+                            type: integer
+                      total_by_priority:
+                        type: object
+                        properties:
+                          low:
+                            type: integer
+                          medium:
+                            type: integer
+                          high:
+                            type: integer
+                          critical:
+                            type: integer
+                          null:
+                            type: integer
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{projectId}/reports/export:
+    post:
+      summary: Export selected reports with enhanced options
+      description: Export reports to CSV/JSON/XLSX with selection and field customization
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportRequest'
+      responses:
+        '200':
+          description: Export file generated successfully
+          headers:
+            Content-Disposition:
+              description: Attachment filename
+              schema:
+                type: string
+                example: attachment; filename="feedloop-reports-2024-01-19.csv"
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: object
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  schemas:
+    ReportTableItem:
+      type: object
+      description: Report item optimized for table display
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 200
+          description: Report title for display and hover tooltip
+        description:
+          type: string
+          maxLength: 5000
+          description: Full description for hover tooltip
+        type:
+          type: string
+          enum: [bug, initiative, feedback]
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+          nullable: true
+        url:
+          type: string
+          nullable: true
+          description: Page URL where report was submitted
+        reporter_name:
+          type: string
+          nullable: true
+        reporter_email:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        # Note: status field excluded per requirements
+        # Additional metadata for table display
+        console_logs_count:
+          type: integer
+          description: Number of console log entries (if requested)
+        network_requests_count:
+          type: integer
+          description: Number of network request entries (if requested)
+        attachments_count:
+          type: integer
+          description: Number of file attachments (if requested)
+      required:
+        - id
+        - title
+        - description
+        - type
+        - created_at
+
+    ExportRequest:
+      type: object
+      properties:
+        format:
+          type: string
+          enum: [csv, json, xlsx]
+          default: csv
+        report_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Specific report IDs to export (if not provided, uses filters)
+        filters:
+          type: object
+          description: Apply filters if report_ids not provided
+          properties:
+            title:
+              type: string
+            type:
+              type: string
+              enum: [bug, initiative, feedback]
+            priority:
+              type: string
+              enum: [low, medium, high, critical]
+            reporter:
+              type: string
+            dateFrom:
+              type: string
+              format: date-time
+            dateTo:
+              type: string
+              format: date-time
+        include_fields:
+          type: object
+          description: Customize which fields to include in export
+          properties:
+            title:
+              type: boolean
+              default: true
+            description:
+              type: boolean
+              default: true
+            type:
+              type: boolean
+              default: true
+            priority:
+              type: boolean
+              default: true
+            reporter:
+              type: boolean
+              default: true
+            url:
+              type: boolean
+              default: true
+            created_at:
+              type: boolean
+              default: true
+            console_logs:
+              type: boolean
+              default: false
+            network_requests:
+              type: boolean
+              default: false
+        template:
+          type: string
+          enum: [default, jira, azure_devops]
+          default: default
+          description: Export template for different platforms
+      required:
+        - format
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        total:
+          type: integer
+          minimum: 0
+        total_pages:
+          type: integer
+          minimum: 0
+        has_next:
+          type: boolean
+        has_prev:
+          type: boolean
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "VALIDATION_ERROR"
+            message: "Invalid filter parameters"
+            details:
+              - field: "filter[dateFrom]"
+                message: "Invalid date format"
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "AUTH_REQUIRED"
+            message: "Valid session required"
+
+    Forbidden:
+      description: Access denied to project
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "NO_PERMISSION"
+            message: "Access denied to project"
+
+    NotFound:
+      description: Project not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "PROJECT_NOT_FOUND"
+            message: "Project not found or access denied"
+
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: next-auth.session-token
+
+security:
+  - sessionCookie: []

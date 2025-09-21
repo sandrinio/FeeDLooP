@@ -30,10 +30,16 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 
 async function runMigration() {
   try {
-    console.log('🚀 Running pending invitations migration...')
+    console.log('🚀 Running schema fixes migration...')
 
     // Read migration SQL file
-    const migrationPath = path.join(__dirname, '..', 'database-migrations', '001-pending-invitations.sql')
+    const migrationPath = path.join(__dirname, '..', 'database-migrations', '002-schema-fixes.sql')
+
+    if (!fs.existsSync(migrationPath)) {
+      console.error('❌ Migration file not found:', migrationPath)
+      process.exit(1)
+    }
+
     const migrationSQL = fs.readFileSync(migrationPath, 'utf8')
 
     // Execute migration
@@ -42,41 +48,51 @@ async function runMigration() {
     })
 
     if (error) {
-      // Try direct query instead
-      const { data: directData, error: directError } = await supabase
-        .from('information_schema.tables')
-        .select('table_name')
-        .eq('table_name', 'fl_pending_invitations')
-
-      if (directError) {
-        throw new Error(`Migration failed: ${error.message}`)
-      }
-
-      // Execute migration SQL directly (split by semicolon and execute each statement)
-      console.log('📝 Executing migration SQL directly...')
-
-      // For now, just log that we need manual execution
+      // For schema changes, we need to execute manually
+      console.log('📝 Schema changes require manual execution...')
       console.log('⚠️  Please execute the migration SQL manually in your Supabase SQL Editor:')
       console.log(`   File: ${migrationPath}`)
-      console.log('   Or paste the contents into Supabase Dashboard > SQL Editor')
+      console.log('')
+      console.log('🔧 Or execute these commands directly:')
+      console.log('')
+      console.log('-- Add missing columns to fl_reports table')
+      console.log('ALTER TABLE fl_reports ADD COLUMN IF NOT EXISTS browser_info JSON;')
+      console.log('ALTER TABLE fl_reports ADD COLUMN IF NOT EXISTS page_url TEXT;')
+      console.log('')
+      console.log('-- Add missing column to fl_attachments table')
+      console.log('ALTER TABLE fl_attachments ADD COLUMN IF NOT EXISTS file_url TEXT;')
+      console.log('')
+      console.log('-- Update enums to include missing values')
+      console.log("ALTER TYPE report_type ADD VALUE IF NOT EXISTS 'feature';")
+      console.log("ALTER TYPE report_status ADD VALUE IF NOT EXISTS 'new';")
+      console.log('')
+      console.log('-- Update file_url for existing attachments')
+      console.log('UPDATE fl_attachments SET file_url = file_path WHERE file_url IS NULL;')
 
       return
     }
 
     console.log('✅ Migration completed successfully!')
 
-    // Verify migration
-    const { data: tables, error: verifyError } = await supabase
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_name', 'fl_pending_invitations')
+    // Verify migration by checking columns exist
+    const { data: reportColumns, error: reportError } = await supabase
+      .from('information_schema.columns')
+      .select('column_name')
+      .eq('table_name', 'fl_reports')
+      .in('column_name', ['browser_info', 'page_url'])
 
-    if (verifyError) {
-      console.warn('⚠️  Could not verify migration, but it may have succeeded')
-    } else if (tables && tables.length > 0) {
-      console.log('✅ Verified: fl_pending_invitations table created')
-    } else {
-      console.warn('⚠️  Table verification failed - please check Supabase manually')
+    const { data: attachmentColumns, error: attachmentError } = await supabase
+      .from('information_schema.columns')
+      .select('column_name')
+      .eq('table_name', 'fl_attachments')
+      .eq('column_name', 'file_url')
+
+    if (!reportError && reportColumns?.length === 2) {
+      console.log('✅ Verified: browser_info and page_url columns added to fl_reports')
+    }
+
+    if (!attachmentError && attachmentColumns?.length === 1) {
+      console.log('✅ Verified: file_url column added to fl_attachments')
     }
 
   } catch (error) {
@@ -85,7 +101,7 @@ async function runMigration() {
     console.log('📋 Manual Migration Instructions:')
     console.log('1. Open Supabase Dashboard')
     console.log('2. Go to SQL Editor')
-    console.log('3. Paste the contents of database-migrations/001-pending-invitations.sql')
+    console.log('3. Paste the contents of database-migrations/002-schema-fixes.sql')
     console.log('4. Click "Run" to execute the migration')
     process.exit(1)
   }

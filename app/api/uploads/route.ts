@@ -1,26 +1,18 @@
 /**
  * File Upload API Endpoint
- * T061: POST /api/uploads endpoint with MinIO integration
+ * T021: POST /api/uploads endpoint with MinIO integration
+ * T086: File upload service with MinIO integration
  *
  * Handles file uploads with MinIO storage integration
  * Supports both direct file uploads and base64 data from widget
+ * Updated to use the new upload service layer
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/database/supabase'
-import { storage, BUCKETS, generateObjectName } from '@/lib/storage/minio'
-import {
-  FileUploadSchema,
-  WidgetAttachmentSchema,
-  generateAttachmentPath,
-  sanitizeFilename,
-  validateFileType,
-  validateFileSize,
-  isImageFile,
-  formatFileSize
-} from '@/lib/models/attachment'
-import { z } from 'zod'
-import { v4 as uuidv4 } from 'uuid'
+import { ServerSession } from '@/lib/auth/session'
+import { uploadService } from '@/lib/services/uploadService'
+import { DatabaseError } from '@/lib/database/supabase'
+import { StorageError } from '@/lib/storage/minio'
 
 // CORS headers for cross-origin requests
 const corsHeaders = {
@@ -38,19 +30,32 @@ export async function OPTIONS() {
 
 export async function POST(request: NextRequest) {
   try {
-    // Initialize storage service
-    await storage.initialize()
+    // Require authentication (for authenticated endpoints)
+    let user = null
+    try {
+      user = await ServerSession.requireAuth()
+    } catch (authError) {
+      // Allow unauthenticated requests (for widget uploads)
+      // Check if Authorization header is present but invalid
+      const authHeader = request.headers.get('authorization')
+      if (authHeader) {
+        return NextResponse.json(
+          { error: 'Unauthorized' },
+          { status: 401, headers: corsHeaders }
+        )
+      }
+    }
 
     const contentType = request.headers.get('content-type') || ''
 
     // Handle multipart/form-data (direct file uploads)
     if (contentType.includes('multipart/form-data')) {
-      return await handleMultipartUpload(request)
+      return await handleMultipartUpload(request, user)
     }
 
     // Handle JSON (base64 widget uploads)
     if (contentType.includes('application/json')) {
-      return await handleJsonUpload(request)
+      return await handleJsonUpload(request, user)
     }
 
     return NextResponse.json(
@@ -61,17 +66,59 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Upload endpoint error:', error)
 
-    // Handle validation errors
-    if (error instanceof z.ZodError) {
+    if (error instanceof Error && error.message === 'Authentication required') {
       return NextResponse.json(
-        {
-          error: 'Validation failed',
-          details: error.errors.map(err => ({
-            field: err.path.join('.'),
-            message: err.message
-          }))
-        },
-        { status: 400, headers: corsHeaders }
+        { error: 'Unauthorized' },
+        { status: 401, headers: corsHeaders }
+      )
+    }
+
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403, headers: corsHeaders }
+      )
+    }
+
+    if (error instanceof DatabaseError) {
+      if (error.code === 'FILE_TOO_LARGE') {
+        return NextResponse.json(
+          { error: 'File too large. Maximum size is 5MB' },
+          { status: 413, headers: corsHeaders }
+        )
+      }
+
+      if (error.code === 'UNSUPPORTED_FILE_TYPE') {
+        return NextResponse.json(
+          { error: 'File type not supported' },
+          { status: 400, headers: corsHeaders }
+        )
+      }
+
+      if (error.code === 'CONTENT_TYPE_MISMATCH') {
+        return NextResponse.json(
+          { error: 'File content type and extension mismatch' },
+          { status: 400, headers: corsHeaders }
+        )
+      }
+
+      if (error.code === 'VALIDATION_ERROR') {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 400, headers: corsHeaders }
+        )
+      }
+
+      return NextResponse.json(
+        { error: 'Upload failed' },
+        { status: 500, headers: corsHeaders }
+      )
+    }
+
+    if (error instanceof StorageError) {
+      return NextResponse.json(
+        { error: 'Storage error occurred' },
+        { status: 500, headers: corsHeaders }
       )
     }
 
@@ -82,7 +129,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleMultipartUpload(request: NextRequest) {
+async function handleMultipartUpload(request: NextRequest, user: any) {
   const formData = await request.formData()
 
   // Extract metadata
@@ -97,105 +144,78 @@ async function handleMultipartUpload(request: NextRequest) {
     )
   }
 
-  // Verify project exists
-  const { data: project, error: projectError } = await supabase
-    .from('fl_projects')
-    .select('id')
-    .eq('id', projectId)
-    .single()
-
-  if (projectError || !project) {
-    return NextResponse.json(
-      { error: 'Invalid project ID' },
-      { status: 400, headers: corsHeaders }
-    )
-  }
-
-  // Verify report exists if provided
-  if (reportId) {
-    const { data: report, error: reportError } = await supabase
-      .from('fl_reports')
-      .select('id')
-      .eq('id', reportId)
-      .eq('project_id', projectId)
-      .single()
-
-    if (reportError || !report) {
+  // Check project access if user is authenticated
+  if (user) {
+    const hasAccess = await ServerSession.hasProjectAccess(projectId)
+    if (!hasAccess) {
       return NextResponse.json(
-        { error: 'Invalid report ID' },
-        { status: 400, headers: corsHeaders }
+        { error: 'Project not found or access denied' },
+        { status: 404, headers: corsHeaders }
       )
     }
   }
 
-  // Get uploaded files
-  const files = formData.getAll('files') as File[]
-
-  if (!files || files.length === 0) {
-    return NextResponse.json(
-      { error: 'No files provided' },
-      { status: 400, headers: corsHeaders }
-    )
-  }
-
-  // Limit to 5 files per upload
-  if (files.length > 5) {
-    return NextResponse.json(
-      { error: 'Maximum 5 files allowed per upload' },
-      { status: 400, headers: corsHeaders }
-    )
-  }
-
-  const uploadResults = []
-  const errors = []
-
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i]
-
+  // Check for single file upload (matches contract test)
+  const singleFile = formData.get('file') as File | null
+  if (singleFile) {
     try {
-      // Validate file
-      const validation = FileUploadSchema.safeParse({
-        filename: file.name,
-        content_type: file.type,
-        size: file.size,
+      const fileData = await processFile(singleFile)
+      const uploadedFile = await uploadService.uploadFile(fileData, {
         project_id: projectId,
-        report_id: reportId,
-        description
+        report_id: reportId || undefined,
+        description: description || undefined,
+        user_id: user?.user_id
       })
 
-      if (!validation.success) {
-        errors.push({
-          file: file.name,
-          error: validation.error.errors[0].message
-        })
-        continue
-      }
-
-      // Process the upload
-      const result = await processFileUpload(file, projectId, reportId, description)
-      uploadResults.push(result)
-
+      return NextResponse.json(
+        { file: mapToContractFormat(uploadedFile, projectId) },
+        { status: 201, headers: corsHeaders }
+      )
     } catch (error) {
-      console.error(`Error uploading file ${file.name}:`, error)
-      errors.push({
-        file: file.name,
-        error: error instanceof Error ? error.message : 'Upload failed'
-      })
+      throw error // Let the main error handler deal with it
     }
   }
 
+  // Check for multiple file upload (matches contract test)
+  const multipleFiles = formData.getAll('files') as File[]
+  if (multipleFiles.length > 0) {
+    try {
+      // Limit to 5 files per upload
+      if (multipleFiles.length > 5) {
+        return NextResponse.json(
+          { error: 'Maximum 5 files allowed per upload' },
+          { status: 400, headers: corsHeaders }
+        )
+      }
+
+      const filesData = await Promise.all(
+        multipleFiles.map(file => processFile(file))
+      )
+
+      const uploadedFiles = await uploadService.uploadFiles(filesData, {
+        project_id: projectId,
+        report_id: reportId || undefined,
+        description: description || undefined,
+        user_id: user?.user_id
+      })
+
+      return NextResponse.json(
+        { files: uploadedFiles.map(file => mapToContractFormat(file, projectId)) },
+        { status: 201, headers: corsHeaders }
+      )
+    } catch (error) {
+      throw error // Let the main error handler deal with it
+    }
+  }
+
+  // No files provided
   return NextResponse.json(
-    {
-      success: true,
-      uploaded: uploadResults,
-      errors: errors.length > 0 ? errors : undefined,
-      message: `Successfully uploaded ${uploadResults.length} of ${files.length} files`
-    },
-    { status: 201, headers: corsHeaders }
+    { error: 'No files provided. Use "file" for single upload or "files" for multiple uploads' },
+    { status: 400, headers: corsHeaders }
   )
 }
 
-async function handleJsonUpload(request: NextRequest) {
+async function handleJsonUpload(request: NextRequest, user: any) {
   const body = await request.json()
 
   // Extract data
@@ -228,33 +248,13 @@ async function handleJsonUpload(request: NextRequest) {
     )
   }
 
-  // Verify project exists
-  const { data: project, error: projectError } = await supabase
-    .from('fl_projects')
-    .select('id')
-    .eq('id', projectId)
-    .single()
-
-  if (projectError || !project) {
-    return NextResponse.json(
-      { error: 'Invalid project ID' },
-      { status: 400, headers: corsHeaders }
-    )
-  }
-
-  // Verify report exists if provided
-  if (reportId) {
-    const { data: report, error: reportError } = await supabase
-      .from('fl_reports')
-      .select('id')
-      .eq('id', reportId)
-      .eq('project_id', projectId)
-      .single()
-
-    if (reportError || !report) {
+  // Check project access if user is authenticated
+  if (user) {
+    const hasAccess = await ServerSession.hasProjectAccess(projectId)
+    if (!hasAccess) {
       return NextResponse.json(
-        { error: 'Invalid report ID' },
-        { status: 400, headers: corsHeaders }
+        { error: 'Project not found or access denied' },
+        { status: 404, headers: corsHeaders }
       )
     }
   }
@@ -266,25 +266,28 @@ async function handleJsonUpload(request: NextRequest) {
     const attachment = attachments[i]
 
     try {
-      // Validate attachment data
-      const validation = WidgetAttachmentSchema.safeParse(attachment)
-
-      if (!validation.success) {
+      if (!attachment.filename || !attachment.content_type || !attachment.base64_data) {
         errors.push({
           file: attachment.filename || `file_${i}`,
-          error: validation.error.errors[0].message
+          error: 'Missing required fields (filename, content_type, base64_data)'
         })
         continue
       }
 
-      // Process the base64 upload
-      const result = await processBase64Upload(
-        validation.data,
-        projectId,
-        reportId,
-        description
+      // Upload using service
+      const result = await uploadService.uploadFromBase64(
+        attachment.base64_data,
+        attachment.filename,
+        attachment.content_type,
+        {
+          project_id: projectId,
+          report_id: reportId || undefined,
+          description: description || undefined,
+          user_id: user?.user_id
+        }
       )
-      uploadResults.push(result)
+
+      uploadResults.push(mapToContractFormat(result, projectId))
 
     } catch (error) {
       console.error(`Error uploading attachment ${attachment.filename}:`, error)
@@ -306,167 +309,42 @@ async function handleJsonUpload(request: NextRequest) {
   )
 }
 
-async function processFileUpload(
-  file: File,
-  projectId: string,
-  reportId: string | null,
-  description: string | null
-): Promise<{
-  id: string
+/**
+ * Process File object to extract necessary data
+ */
+async function processFile(file: File): Promise<{
   filename: string
-  original_filename: string
-  url: string
-  size: number
+  buffer: Buffer
   content_type: string
+  size: number
 }> {
-  // Generate unique attachment ID
-  const attachmentId = uuidv4()
-
-  // Sanitize filename
-  const originalFilename = file.name
-  const sanitizedFilename = sanitizeFilename(originalFilename)
-
-  // Generate storage path
-  const storagePath = generateAttachmentPath(projectId, reportId, sanitizedFilename)
-
-  // Convert file to buffer
+  // Convert File to Buffer
   const arrayBuffer = await file.arrayBuffer()
   const buffer = Buffer.from(arrayBuffer)
 
-  // Upload to MinIO
-  const uploadResult = await storage.uploadFile(
-    BUCKETS.ATTACHMENTS,
-    storagePath,
-    buffer,
-    buffer.length,
-    {
-      'Content-Type': file.type,
-      'Original-Filename': originalFilename,
-      'Project-ID': projectId,
-      'Report-ID': reportId || '',
-      'Attachment-ID': attachmentId
-    }
-  )
-
-  // Create attachment record in database
-  const { data: attachment, error: dbError } = await supabase
-    .from('fl_attachments')
-    .insert({
-      id: attachmentId,
-      project_id: projectId,
-      report_id: reportId,
-      filename: sanitizedFilename,
-      original_filename: originalFilename,
-      content_type: file.type,
-      size: file.size,
-      url: uploadResult.url,
-      storage_path: storagePath,
-      status: 'ready',
-      description,
-      scan_status: 'pending',
-      uploaded_by: null, // No user auth for this endpoint
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    })
-    .select()
-    .single()
-
-  if (dbError) {
-    // Clean up uploaded file if database insert fails
-    try {
-      await storage.deleteObject(BUCKETS.ATTACHMENTS, storagePath)
-    } catch (cleanupError) {
-      console.error('Failed to cleanup uploaded file:', cleanupError)
-    }
-    throw new Error('Failed to save attachment record')
-  }
-
   return {
-    id: attachment.id,
-    filename: attachment.filename,
-    original_filename: attachment.original_filename,
-    url: attachment.url,
-    size: attachment.size,
-    content_type: attachment.content_type
+    filename: file.name,
+    buffer,
+    content_type: file.type,
+    size: file.size
   }
 }
 
-async function processBase64Upload(
-  attachment: { filename: string; content_type: string; size: number; base64_data: string },
-  projectId: string,
-  reportId: string | null,
-  description: string | null
-): Promise<{
-  id: string
-  filename: string
-  original_filename: string
-  url: string
-  size: number
-  content_type: string
-}> {
-  // Generate unique attachment ID
-  const attachmentId = uuidv4()
-
-  // Sanitize filename
-  const originalFilename = attachment.filename
-  const sanitizedFilename = sanitizeFilename(originalFilename)
-
-  // Generate storage path
-  const storagePath = generateAttachmentPath(projectId, reportId, sanitizedFilename)
-
-  // Upload base64 data to MinIO
-  const uploadResult = await storage.uploadFromBase64(
-    BUCKETS.ATTACHMENTS,
-    storagePath,
-    attachment.base64_data,
-    attachment.content_type,
-    {
-      'Original-Filename': originalFilename,
-      'Project-ID': projectId,
-      'Report-ID': reportId || '',
-      'Attachment-ID': attachmentId
-    }
-  )
-
-  // Create attachment record in database
-  const { data: dbAttachment, error: dbError } = await supabase
-    .from('fl_attachments')
-    .insert({
-      id: attachmentId,
-      project_id: projectId,
-      report_id: reportId,
-      filename: sanitizedFilename,
-      original_filename: originalFilename,
-      content_type: attachment.content_type,
-      size: attachment.size,
-      url: uploadResult.url,
-      storage_path: storagePath,
-      status: 'ready',
-      description,
-      scan_status: 'pending',
-      uploaded_by: null, // No user auth for this endpoint
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    })
-    .select()
-    .single()
-
-  if (dbError) {
-    // Clean up uploaded file if database insert fails
-    try {
-      await storage.deleteObject(BUCKETS.ATTACHMENTS, storagePath)
-    } catch (cleanupError) {
-      console.error('Failed to cleanup uploaded file:', cleanupError)
-    }
-    throw new Error('Failed to save attachment record')
-  }
-
+/**
+ * Map upload service result to contract test format
+ */
+function mapToContractFormat(uploadedFile: any, projectId: string): any {
   return {
-    id: dbAttachment.id,
-    filename: dbAttachment.filename,
-    original_filename: dbAttachment.original_filename,
-    url: dbAttachment.url,
-    size: dbAttachment.size,
-    content_type: dbAttachment.content_type
+    id: uploadedFile.id,
+    filename: uploadedFile.filename,
+    content_type: uploadedFile.content_type,
+    size: uploadedFile.size,
+    url: uploadedFile.url,
+    project_id: projectId,
+    report_id: uploadedFile.report_id || undefined,
+    description: uploadedFile.description || undefined,
+    uploaded_at: uploadedFile.created_at,
+    scan_status: uploadedFile.scan_status,
+    scan_result: uploadedFile.scan_result
   }
 }

@@ -449,6 +449,19 @@ export default function ProjectReportsPage() {
                               <span className="text-xs text-gray-900 capitalize font-medium bg-gray-100 px-2 py-1 rounded" data-testid="type-badge">
                                 {report.type}
                               </span>
+                              {/* Log Count Indicators */}
+                              {report.console_logs && report.console_logs.length > 0 && (
+                                <span className="inline-flex items-center text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded" title={`${report.console_logs.length} console logs`}>
+                                  <CodeBracketIcon className="h-3 w-3 mr-1" />
+                                  {report.console_logs.length}
+                                </span>
+                              )}
+                              {report.network_requests && report.network_requests.length > 0 && (
+                                <span className="inline-flex items-center text-xs text-green-600 bg-green-50 px-2 py-1 rounded" title={`${report.network_requests.length} network requests`}>
+                                  <WifiIcon className="h-3 w-3 mr-1" />
+                                  {report.network_requests.length}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>

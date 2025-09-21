@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="9" failures="7" errors="0" time="33.627">
+  <testsuite name="Widget Performance Tests" errors="0" failures="7" skipped="0" timestamp="2025-09-20T18:11:00" time="33.598" tests="9">
+    <testcase classname="Widget Performance Tests Widget script should load within 500ms" name="Widget Performance Tests Widget script should load within 500ms" time="5.514">
+      <failure>TimeoutError: Waiting failed: 5000ms exceeded
+    at new WaitTask (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/common/WaitTask.ts:77:28)
+    at IsolatedWorld.waitForFunction (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/api/Realm.ts:74:22)
+    at CdpFrame.waitForFunction (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/api/Frame.ts:795:36)
+    at CdpFrame.&lt;anonymous&gt; (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/util/decorators.ts:63:21)
+    at CdpPage.waitForFunction (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/api/Page.ts:3123:29)
+    at Object.waitForFunction (/Volumes/My Drive/dev/FeeDLooP_v1/tests/performance/widget-performance.test.js:94:16)</failure>
+    </testcase>
+    <testcase classname="Widget Performance Tests Widget initialization should be fast" name="Widget Performance Tests Widget initialization should be fast" time="5.076">
+      <failure>TimeoutError: Waiting failed: 5000ms exceeded
+    at new WaitTask (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/common/WaitTask.ts:77:28)
+    at IsolatedWorld.waitForFunction (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/api/Realm.ts:74:22)
+    at CdpFrame.waitForFunction (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/api/Frame.ts:795:36)
+    at CdpFrame.&lt;anonymous&gt; (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/util/decorators.ts:63:21)
+    at CdpPage.waitForFunction (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/api/Page.ts:3123:29)
+    at Object.waitForFunction (/Volumes/My Drive/dev/FeeDLooP_v1/tests/performance/widget-performance.test.js:142:16)</failure>
+    </testcase>
+    <testcase classname="Widget Performance Tests Widget button should render quickly" name="Widget Performance Tests Widget button should render quickly" time="5.105">
+      <failure>TimeoutError: Waiting failed: 5000ms exceeded
+    at new WaitTask (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/common/WaitTask.ts:77:28)
+    at IsolatedWorld.waitForFunction (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/api/Realm.ts:74:22)
+    at CdpFrame.waitForFunction (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/api/Frame.ts:795:36)
+    at CdpFrame.&lt;anonymous&gt; (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/util/decorators.ts:63:21)
+    at CdpPage.waitForFunction (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/api/Page.ts:3123:29)
+    at Object.waitForFunction (/Volumes/My Drive/dev/FeeDLooP_v1/tests/performance/widget-performance.test.js:199:16)</failure>
+    </testcase>
+    <testcase classname="Widget Performance Tests Widget modal should open quickly" name="Widget Performance Tests Widget modal should open quickly" time="5.533">
+      <failure>TimeoutError: Waiting for selector `#feedloop-widget-button` failed
+    at Function.waitFor (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/common/QueryHandler.ts:213:36)
+    at CdpFrame.waitForSelector (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/api/Frame.ts:747:13)
+    at CdpPage.waitForSelector (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/api/Page.ts:3054:12)
+    at Object.&lt;anonymous&gt; (/Volumes/My Drive/dev/FeeDLooP_v1/tests/performance/widget-performance.test.js:211:5)</failure>
+    </testcase>
+    <testcase classname="Widget Performance Tests Widget should handle multiple rapid clicks gracefully" name="Widget Performance Tests Widget should handle multiple rapid clicks gracefully" time="5.567">
+      <failure>TimeoutError: Waiting for selector `#feedloop-widget-button` failed
+    at Function.waitFor (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/common/QueryHandler.ts:213:36)
+    at CdpFrame.waitForSelector (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/api/Frame.ts:747:13)
+    at CdpPage.waitForSelector (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/api/Page.ts:3054:12)
+    at Object.&lt;anonymous&gt; (/Volumes/My Drive/dev/FeeDLooP_v1/tests/performance/widget-performance.test.js:233:5)</failure>
+    </testcase>
+    <testcase classname="Widget Performance Tests Widget script size should be optimized" name="Widget Performance Tests Widget script size should be optimized" time="0.505">
+    </testcase>
+    <testcase classname="Widget Performance Tests Widget CSS should be minimal" name="Widget Performance Tests Widget CSS should be minimal" time="5.068">
+      <failure>TimeoutError: Waiting failed: 5000ms exceeded
+    at new WaitTask (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/common/WaitTask.ts:77:28)
+    at IsolatedWorld.waitForFunction (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/api/Realm.ts:74:22)
+    at CdpFrame.waitForFunction (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/api/Frame.ts:795:36)
+    at CdpFrame.&lt;anonymous&gt; (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/util/decorators.ts:63:21)
+    at CdpPage.waitForFunction (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/api/Page.ts:3123:29)
+    at Object.waitForFunction (/Volumes/My Drive/dev/FeeDLooP_v1/tests/performance/widget-performance.test.js:337:16)</failure>
+    </testcase>
+    <testcase classname="Widget Performance Tests Widget should work on slow connections" name="Widget Performance Tests Widget should work on slow connections" time="0.046">
+      <failure>ProtocolError: Protocol error (Network.emulateNetworkConditions): Invalid parameters Failed to deserialize params.downloadThroughput - BINDINGS: mandatory field missing at position 28
+    at Callback.&lt;instance_members_initializer&gt; (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/common/CallbackRegistry.ts:127:12)
+    at new Callback (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/common/CallbackRegistry.ts:132:3)
+    at CallbackRegistry.create (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/common/CallbackRegistry.ts:30:22)
+    at Connection._rawSend (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/cdp/Connection.ts:136:22)
+    at CdpCDPSession.send (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/cdp/CdpSession.ts:103:29)
+    at NetworkManager.#applyNetworkConditions (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/cdp/NetworkManager.ts:252:20)
+    at /Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/cdp/NetworkManager.ts:242:16
+    at Array.map (&lt;anonymous&gt;)
+    at NetworkManager.#applyToAllClients (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/cdp/NetworkManager.ts:241:40)
+    at NetworkManager.emulateNetworkConditions (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/cdp/NetworkManager.ts:236:34)
+    at CdpPage.emulateNetworkConditions (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/puppeteer-core/src/cdp/Page.ts:558:52)
+    at Object.emulateNetworkConditions (/Volumes/My Drive/dev/FeeDLooP_v1/tests/performance/widget-performance.test.js:347:16)
+    at Promise.finally.completed (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/jest-circus/build/jestAdapterInit.js:1556:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/jest-circus/build/jestAdapterInit.js:1496:10)
+    at _callCircusTest (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/jest-circus/build/jestAdapterInit.js:1006:40)
+    at _runTest (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/jest-circus/build/jestAdapterInit.js:946:3)
+    at _runTestsForDescribeBlock (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/jest-circus/build/jestAdapterInit.js:839:13)
+    at _runTestsForDescribeBlock (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/jest-circus/build/jestAdapterInit.js:829:11)
+    at run (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/jest-circus/build/jestAdapterInit.js:757:3)
+    at runAndTransformResultsToJestFormat (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/jest-circus/build/jestAdapterInit.js:1917:21)
+    at jestAdapter (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/jest-circus/build/runner.js:101:19)
+    at runTestInternal (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/jest-runner/build/index.js:275:16)
+    at runTest (/Volumes/My Drive/dev/FeeDLooP_v1/node_modules/jest-runner/build/index.js:343:7)</failure>
+    </testcase>
+    <testcase classname="Widget Performance Tests Generate performance report" name="Widget Performance Tests Generate performance report" time="0.049">
+    </testcase>
+  </testsuite>
+</testsuites>

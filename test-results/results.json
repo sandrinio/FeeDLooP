@@ -11,7 +11,7 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 1
+      "actualWorkers": 5
     },
     "preserveOutput": "always",
     "reporter": [
@@ -43,7 +43,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 5
         },
         "id": "chromium",
         "name": "chromium",
@@ -59,7 +59,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 5
         },
         "id": "firefox",
         "name": "firefox",
@@ -75,7 +75,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 5
         },
         "id": "webkit",
         "name": "webkit",
@@ -91,7 +91,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 5
         },
         "id": "Mobile Chrome",
         "name": "Mobile Chrome",
@@ -107,7 +107,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 5
         },
         "id": "Mobile Safari",
         "name": "Mobile Safari",
@@ -133,68 +133,840 @@
   },
   "suites": [
     {
-      "title": "widget-production.spec.ts",
-      "file": "widget-production.spec.ts",
+      "title": "enhanced-reports-verification.spec.ts",
+      "file": "enhanced-reports-verification.spec.ts",
       "column": 0,
       "line": 0,
-      "specs": [],
-      "suites": [
+      "specs": [
         {
-          "title": "Production Widget Tests",
-          "file": "widget-production.spec.ts",
-          "line": 3,
-          "column": 6,
-          "specs": [
+          "title": "Enhanced Reports Dashboard - Full Feature Verification",
+          "ok": true,
+          "tags": [],
+          "tests": [
             {
-              "title": "production widget loads and submits feedback successfully",
-              "ok": true,
-              "tags": [],
-              "tests": [
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
                 {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 21434,
+                  "errors": [],
+                  "stdout": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 5263,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "✅ Production widget test completed successfully\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-09-20T14:18:54.489Z",
-                      "annotations": [],
-                      "attachments": []
+                      "text": "🔍 Starting Enhanced Reports Dashboard verification...\n"
+                    },
+                    {
+                      "text": "🔐 Authenticating...\n"
+                    },
+                    {
+                      "text": "✅ Authentication successful\n"
+                    },
+                    {
+                      "text": "📊 Navigating to enhanced reports page...\n"
+                    },
+                    {
+                      "text": "🧪 Testing Enhanced Features...\n"
+                    },
+                    {
+                      "text": "Testing: Enhanced table structure...\n"
+                    },
+                    {
+                      "text": "✓ Table present: true\n"
+                    },
+                    {
+                      "text": "Testing: Filter functionality...\n"
+                    },
+                    {
+                      "text": "✓ Filters section present: true\n"
+                    },
+                    {
+                      "text": "✓ Search input functional\n"
+                    },
+                    {
+                      "text": "✓ Filter dropdowns found: 2\n"
+                    },
+                    {
+                      "text": "✓ Dropdown filtering functional\n"
+                    },
+                    {
+                      "text": "Testing: Status column removal...\n"
+                    },
+                    {
+                      "text": "✓ Status column removed: true\n"
+                    },
+                    {
+                      "text": "Testing: Export functionality...\n"
+                    },
+                    {
+                      "text": "✓ Export button present: true\n"
+                    },
+                    {
+                      "text": "✓ Export modal opens: false\n"
+                    },
+                    {
+                      "text": "Testing: Console logs viewer...\n"
+                    },
+                    {
+                      "text": "✓ Console logs section: Not visible (likely no data)\n"
+                    },
+                    {
+                      "text": "Testing: Enhanced styling and hover effects...\n"
+                    },
+                    {
+                      "text": "✓ Table rows found: 20\n"
+                    },
+                    {
+                      "text": "✓ Row hover effect tested\n"
+                    },
+                    {
+                      "text": "✓ Link hover tested for tooltips\n"
+                    },
+                    {
+                      "text": "Testing: Responsive design...\n"
+                    },
+                    {
+                      "text": "✓ Responsive design tested\n"
+                    },
+                    {
+                      "text": "Testing: API responses...\n"
+                    },
+                    {
+                      "text": "Testing: Performance metrics...\n"
+                    },
+                    {
+                      "text": "✓ Load time: 0ms\n"
+                    },
+                    {
+                      "text": "✓ DOM loaded: 0ms\n"
+                    },
+                    {
+                      "text": "\n📋 ENHANCED REPORTS VERIFICATION SUMMARY:\n"
+                    },
+                    {
+                      "text": "==================================================\n"
+                    },
+                    {
+                      "text": "✓ Table Structure: true\n"
+                    },
+                    {
+                      "text": "✓ Filters Section: true\n"
+                    },
+                    {
+                      "text": "✓ Status Column Removed: true\n"
+                    },
+                    {
+                      "text": "✓ Export Functionality: true\n"
+                    },
+                    {
+                      "text": "✓ Console Logs Viewer: Hidden (no data)\n"
+                    },
+                    {
+                      "text": "✓ Table Rows: 20\n"
+                    },
+                    {
+                      "text": "✓ Responsive Design: Tested\n"
+                    },
+                    {
+                      "text": "✓ Performance: Load 0ms\n"
+                    },
+                    {
+                      "text": "==================================================\n"
                     }
                   ],
-                  "status": "expected"
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-09-21T06:57:11.363Z",
+                  "annotations": [],
+                  "attachments": []
                 }
               ],
-              "id": "e877ab1b36243fe6a7f4-604ef0e90a12e76207d1",
-              "file": "widget-production.spec.ts",
-              "line": 4,
-              "column": 7
+              "status": "expected"
             }
-          ]
+          ],
+          "id": "46b27e1850530884e599-53d63afb2fdfb31c06f3",
+          "file": "enhanced-reports-verification.spec.ts",
+          "line": 10,
+          "column": 5
+        },
+        {
+          "title": "Enhanced Reports Dashboard - Full Feature Verification",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 20746,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "🔍 Starting Enhanced Reports Dashboard verification...\n"
+                    },
+                    {
+                      "text": "🔐 Authenticating...\n"
+                    },
+                    {
+                      "text": "✅ Authentication successful\n"
+                    },
+                    {
+                      "text": "📊 Navigating to enhanced reports page...\n"
+                    },
+                    {
+                      "text": "🧪 Testing Enhanced Features...\n"
+                    },
+                    {
+                      "text": "Testing: Enhanced table structure...\n"
+                    },
+                    {
+                      "text": "✓ Table present: true\n"
+                    },
+                    {
+                      "text": "Testing: Filter functionality...\n"
+                    },
+                    {
+                      "text": "✓ Filters section present: true\n"
+                    },
+                    {
+                      "text": "✓ Search input functional\n"
+                    },
+                    {
+                      "text": "✓ Filter dropdowns found: 2\n"
+                    },
+                    {
+                      "text": "✓ Dropdown filtering functional\n"
+                    },
+                    {
+                      "text": "Testing: Status column removal...\n"
+                    },
+                    {
+                      "text": "✓ Status column removed: true\n"
+                    },
+                    {
+                      "text": "Testing: Export functionality...\n"
+                    },
+                    {
+                      "text": "✓ Export button present: true\n"
+                    },
+                    {
+                      "text": "✓ Export modal opens: false\n"
+                    },
+                    {
+                      "text": "Testing: Console logs viewer...\n"
+                    },
+                    {
+                      "text": "✓ Console logs section: Not visible (likely no data)\n"
+                    },
+                    {
+                      "text": "Testing: Enhanced styling and hover effects...\n"
+                    },
+                    {
+                      "text": "✓ Table rows found: 20\n"
+                    },
+                    {
+                      "text": "✓ Row hover effect tested\n"
+                    },
+                    {
+                      "text": "✓ Link hover tested for tooltips\n"
+                    },
+                    {
+                      "text": "Testing: Responsive design...\n"
+                    },
+                    {
+                      "text": "✓ Responsive design tested\n"
+                    },
+                    {
+                      "text": "Testing: API responses...\n"
+                    },
+                    {
+                      "text": "Testing: Performance metrics...\n"
+                    },
+                    {
+                      "text": "✓ Load time: 0ms\n"
+                    },
+                    {
+                      "text": "✓ DOM loaded: 1ms\n"
+                    },
+                    {
+                      "text": "\n📋 ENHANCED REPORTS VERIFICATION SUMMARY:\n"
+                    },
+                    {
+                      "text": "==================================================\n"
+                    },
+                    {
+                      "text": "✓ Table Structure: true\n"
+                    },
+                    {
+                      "text": "✓ Filters Section: true\n"
+                    },
+                    {
+                      "text": "✓ Status Column Removed: true\n"
+                    },
+                    {
+                      "text": "✓ Export Functionality: true\n"
+                    },
+                    {
+                      "text": "✓ Console Logs Viewer: Hidden (no data)\n"
+                    },
+                    {
+                      "text": "✓ Table Rows: 20\n"
+                    },
+                    {
+                      "text": "✓ Responsive Design: Tested\n"
+                    },
+                    {
+                      "text": "✓ Performance: Load 0ms\n"
+                    },
+                    {
+                      "text": "==================================================\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-09-21T06:57:11.379Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "46b27e1850530884e599-46c0d71f5df5d319616e",
+          "file": "enhanced-reports-verification.spec.ts",
+          "line": 10,
+          "column": 5
+        },
+        {
+          "title": "Enhanced Reports Dashboard - Full Feature Verification",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 2,
+                  "status": "failed",
+                  "duration": 28563,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at /Volumes/My Drive/dev/FeeDLooP_v1/tests/e2e/enhanced-reports-verification.spec.ts:217:20",
+                    "location": {
+                      "file": "/Volumes/My Drive/dev/FeeDLooP_v1/tests/e2e/enhanced-reports-verification.spec.ts",
+                      "column": 20,
+                      "line": 217
+                    },
+                    "snippet": "  215 |\n  216 |   // Verify core functionality is working\n> 217 |   expect(hasTable).toBe(true);\n      |                    ^\n  218 |   expect(statusRemoved).toBe(true); // Status column should be removed\n  219 |   expect(page.url()).toContain('/reports');\n  220 | });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/My Drive/dev/FeeDLooP_v1/tests/e2e/enhanced-reports-verification.spec.ts",
+                        "column": 20,
+                        "line": 217
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  215 |\n  216 |   // Verify core functionality is working\n> 217 |   expect(hasTable).toBe(true);\n      |                    ^\n  218 |   expect(statusRemoved).toBe(true); // Status column should be removed\n  219 |   expect(page.url()).toContain('/reports');\n  220 | });\n    at /Volumes/My Drive/dev/FeeDLooP_v1/tests/e2e/enhanced-reports-verification.spec.ts:217:20"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "🔍 Starting Enhanced Reports Dashboard verification...\n"
+                    },
+                    {
+                      "text": "🔐 Authenticating...\n"
+                    },
+                    {
+                      "text": "⚠️ Authentication redirect may have failed, continuing...\n"
+                    },
+                    {
+                      "text": "📊 Navigating to enhanced reports page...\n"
+                    },
+                    {
+                      "text": "🧪 Testing Enhanced Features...\n"
+                    },
+                    {
+                      "text": "Testing: Enhanced table structure...\n"
+                    },
+                    {
+                      "text": "✓ Table present: false\n"
+                    },
+                    {
+                      "text": "Testing: Filter functionality...\n"
+                    },
+                    {
+                      "text": "✓ Filters section present: false\n"
+                    },
+                    {
+                      "text": "Testing: Status column removal...\n"
+                    },
+                    {
+                      "text": "✓ Status column removed: true\n"
+                    },
+                    {
+                      "text": "Testing: Export functionality...\n"
+                    },
+                    {
+                      "text": "✓ Export button present: false\n"
+                    },
+                    {
+                      "text": "Testing: Console logs viewer...\n"
+                    },
+                    {
+                      "text": "✓ Console logs section: Not visible (likely no data)\n"
+                    },
+                    {
+                      "text": "Testing: Enhanced styling and hover effects...\n"
+                    },
+                    {
+                      "text": "✓ Table rows found: 0\n"
+                    },
+                    {
+                      "text": "Testing: Responsive design...\n"
+                    },
+                    {
+                      "text": "✓ Responsive design tested\n"
+                    },
+                    {
+                      "text": "Testing: API responses...\n"
+                    },
+                    {
+                      "text": "Testing: Performance metrics...\n"
+                    },
+                    {
+                      "text": "✓ Load time: 0ms\n"
+                    },
+                    {
+                      "text": "✓ DOM loaded: 0ms\n"
+                    },
+                    {
+                      "text": "\n📋 ENHANCED REPORTS VERIFICATION SUMMARY:\n"
+                    },
+                    {
+                      "text": "==================================================\n"
+                    },
+                    {
+                      "text": "✓ Table Structure: false\n"
+                    },
+                    {
+                      "text": "✓ Filters Section: false\n"
+                    },
+                    {
+                      "text": "✓ Status Column Removed: true\n"
+                    },
+                    {
+                      "text": "✓ Export Functionality: false\n"
+                    },
+                    {
+                      "text": "✓ Console Logs Viewer: Hidden (no data)\n"
+                    },
+                    {
+                      "text": "✓ Table Rows: 0\n"
+                    },
+                    {
+                      "text": "✓ Responsive Design: Tested\n"
+                    },
+                    {
+                      "text": "✓ Performance: Load 0ms\n"
+                    },
+                    {
+                      "text": "==================================================\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-09-21T06:57:11.366Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/My Drive/dev/FeeDLooP_v1/test-results/enhanced-reports-verificat-90a76---Full-Feature-Verification-webkit/test-failed-1.png"
+                    },
+                    {
+                      "name": "video",
+                      "contentType": "video/webm",
+                      "path": "/Volumes/My Drive/dev/FeeDLooP_v1/test-results/enhanced-reports-verificat-90a76---Full-Feature-Verification-webkit/video.webm"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/My Drive/dev/FeeDLooP_v1/test-results/enhanced-reports-verificat-90a76---Full-Feature-Verification-webkit/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/My Drive/dev/FeeDLooP_v1/tests/e2e/enhanced-reports-verification.spec.ts",
+                    "column": 20,
+                    "line": 217
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "46b27e1850530884e599-22a37341e01bc8b3bbca",
+          "file": "enhanced-reports-verification.spec.ts",
+          "line": 10,
+          "column": 5
+        },
+        {
+          "title": "Enhanced Reports Dashboard - Full Feature Verification",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Chrome",
+              "projectName": "Mobile Chrome",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 3,
+                  "status": "passed",
+                  "duration": 22670,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "🔍 Starting Enhanced Reports Dashboard verification...\n"
+                    },
+                    {
+                      "text": "🔐 Authenticating...\n"
+                    },
+                    {
+                      "text": "✅ Authentication successful\n"
+                    },
+                    {
+                      "text": "📊 Navigating to enhanced reports page...\n"
+                    },
+                    {
+                      "text": "🧪 Testing Enhanced Features...\n"
+                    },
+                    {
+                      "text": "Testing: Enhanced table structure...\n"
+                    },
+                    {
+                      "text": "✓ Table present: true\n"
+                    },
+                    {
+                      "text": "Testing: Filter functionality...\n"
+                    },
+                    {
+                      "text": "✓ Filters section present: true\n"
+                    },
+                    {
+                      "text": "✓ Search input functional\n"
+                    },
+                    {
+                      "text": "✓ Filter dropdowns found: 2\n"
+                    },
+                    {
+                      "text": "✓ Dropdown filtering functional\n"
+                    },
+                    {
+                      "text": "Testing: Status column removal...\n"
+                    },
+                    {
+                      "text": "✓ Status column removed: true\n"
+                    },
+                    {
+                      "text": "Testing: Export functionality...\n"
+                    },
+                    {
+                      "text": "✓ Export button present: true\n"
+                    },
+                    {
+                      "text": "✓ Export modal opens: false\n"
+                    },
+                    {
+                      "text": "Testing: Console logs viewer...\n"
+                    },
+                    {
+                      "text": "✓ Console logs section: Not visible (likely no data)\n"
+                    },
+                    {
+                      "text": "Testing: Enhanced styling and hover effects...\n"
+                    },
+                    {
+                      "text": "✓ Table rows found: 20\n"
+                    },
+                    {
+                      "text": "✓ Row hover effect tested\n"
+                    },
+                    {
+                      "text": "✓ Link hover tested for tooltips\n"
+                    },
+                    {
+                      "text": "Testing: Responsive design...\n"
+                    },
+                    {
+                      "text": "✓ Responsive design tested\n"
+                    },
+                    {
+                      "text": "Testing: API responses...\n"
+                    },
+                    {
+                      "text": "Testing: Performance metrics...\n"
+                    },
+                    {
+                      "text": "✓ Load time: 0ms\n"
+                    },
+                    {
+                      "text": "✓ DOM loaded: 0.10000002384185791ms\n"
+                    },
+                    {
+                      "text": "\n📋 ENHANCED REPORTS VERIFICATION SUMMARY:\n"
+                    },
+                    {
+                      "text": "==================================================\n"
+                    },
+                    {
+                      "text": "✓ Table Structure: true\n"
+                    },
+                    {
+                      "text": "✓ Filters Section: true\n"
+                    },
+                    {
+                      "text": "✓ Status Column Removed: true\n"
+                    },
+                    {
+                      "text": "✓ Export Functionality: true\n"
+                    },
+                    {
+                      "text": "✓ Console Logs Viewer: Hidden (no data)\n"
+                    },
+                    {
+                      "text": "✓ Table Rows: 20\n"
+                    },
+                    {
+                      "text": "✓ Responsive Design: Tested\n"
+                    },
+                    {
+                      "text": "✓ Performance: Load 0ms\n"
+                    },
+                    {
+                      "text": "==================================================\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-09-21T06:57:11.350Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "46b27e1850530884e599-71868d342356263d09f6",
+          "file": "enhanced-reports-verification.spec.ts",
+          "line": 10,
+          "column": 5
+        },
+        {
+          "title": "Enhanced Reports Dashboard - Full Feature Verification",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "Mobile Safari",
+              "projectName": "Mobile Safari",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 4,
+                  "status": "failed",
+                  "duration": 28723,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at /Volumes/My Drive/dev/FeeDLooP_v1/tests/e2e/enhanced-reports-verification.spec.ts:217:20",
+                    "location": {
+                      "file": "/Volumes/My Drive/dev/FeeDLooP_v1/tests/e2e/enhanced-reports-verification.spec.ts",
+                      "column": 20,
+                      "line": 217
+                    },
+                    "snippet": "  215 |\n  216 |   // Verify core functionality is working\n> 217 |   expect(hasTable).toBe(true);\n      |                    ^\n  218 |   expect(statusRemoved).toBe(true); // Status column should be removed\n  219 |   expect(page.url()).toContain('/reports');\n  220 | });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/My Drive/dev/FeeDLooP_v1/tests/e2e/enhanced-reports-verification.spec.ts",
+                        "column": 20,
+                        "line": 217
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  215 |\n  216 |   // Verify core functionality is working\n> 217 |   expect(hasTable).toBe(true);\n      |                    ^\n  218 |   expect(statusRemoved).toBe(true); // Status column should be removed\n  219 |   expect(page.url()).toContain('/reports');\n  220 | });\n    at /Volumes/My Drive/dev/FeeDLooP_v1/tests/e2e/enhanced-reports-verification.spec.ts:217:20"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "🔍 Starting Enhanced Reports Dashboard verification...\n"
+                    },
+                    {
+                      "text": "🔐 Authenticating...\n"
+                    },
+                    {
+                      "text": "⚠️ Authentication redirect may have failed, continuing...\n"
+                    },
+                    {
+                      "text": "📊 Navigating to enhanced reports page...\n"
+                    },
+                    {
+                      "text": "🧪 Testing Enhanced Features...\n"
+                    },
+                    {
+                      "text": "Testing: Enhanced table structure...\n"
+                    },
+                    {
+                      "text": "✓ Table present: false\n"
+                    },
+                    {
+                      "text": "Testing: Filter functionality...\n"
+                    },
+                    {
+                      "text": "✓ Filters section present: false\n"
+                    },
+                    {
+                      "text": "Testing: Status column removal...\n"
+                    },
+                    {
+                      "text": "✓ Status column removed: true\n"
+                    },
+                    {
+                      "text": "Testing: Export functionality...\n"
+                    },
+                    {
+                      "text": "✓ Export button present: false\n"
+                    },
+                    {
+                      "text": "Testing: Console logs viewer...\n"
+                    },
+                    {
+                      "text": "✓ Console logs section: Not visible (likely no data)\n"
+                    },
+                    {
+                      "text": "Testing: Enhanced styling and hover effects...\n"
+                    },
+                    {
+                      "text": "✓ Table rows found: 0\n"
+                    },
+                    {
+                      "text": "Testing: Responsive design...\n"
+                    },
+                    {
+                      "text": "✓ Responsive design tested\n"
+                    },
+                    {
+                      "text": "Testing: API responses...\n"
+                    },
+                    {
+                      "text": "Testing: Performance metrics...\n"
+                    },
+                    {
+                      "text": "✓ Load time: 0ms\n"
+                    },
+                    {
+                      "text": "✓ DOM loaded: 0ms\n"
+                    },
+                    {
+                      "text": "\n📋 ENHANCED REPORTS VERIFICATION SUMMARY:\n"
+                    },
+                    {
+                      "text": "==================================================\n"
+                    },
+                    {
+                      "text": "✓ Table Structure: false\n"
+                    },
+                    {
+                      "text": "✓ Filters Section: false\n"
+                    },
+                    {
+                      "text": "✓ Status Column Removed: true\n"
+                    },
+                    {
+                      "text": "✓ Export Functionality: false\n"
+                    },
+                    {
+                      "text": "✓ Console Logs Viewer: Hidden (no data)\n"
+                    },
+                    {
+                      "text": "✓ Table Rows: 0\n"
+                    },
+                    {
+                      "text": "✓ Responsive Design: Tested\n"
+                    },
+                    {
+                      "text": "✓ Performance: Load 0ms\n"
+                    },
+                    {
+                      "text": "==================================================\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-09-21T06:57:11.350Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/My Drive/dev/FeeDLooP_v1/test-results/enhanced-reports-verificat-90a76---Full-Feature-Verification-Mobile-Safari/test-failed-1.png"
+                    },
+                    {
+                      "name": "video",
+                      "contentType": "video/webm",
+                      "path": "/Volumes/My Drive/dev/FeeDLooP_v1/test-results/enhanced-reports-verificat-90a76---Full-Feature-Verification-Mobile-Safari/video.webm"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/My Drive/dev/FeeDLooP_v1/test-results/enhanced-reports-verificat-90a76---Full-Feature-Verification-Mobile-Safari/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/My Drive/dev/FeeDLooP_v1/tests/e2e/enhanced-reports-verification.spec.ts",
+                    "column": 20,
+                    "line": 217
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "46b27e1850530884e599-a071c6e8aae2f9dfb433",
+          "file": "enhanced-reports-verification.spec.ts",
+          "line": 10,
+          "column": 5
         }
       ]
     }
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-09-20T14:18:50.476Z",
-    "duration": 10141.999,
-    "expected": 1,
+    "startTime": "2025-09-21T06:57:07.841Z",
+    "duration": 33843.67,
+    "expected": 3,
     "skipped": 0,
-    "unexpected": 0,
+    "unexpected": 2,
     "flaky": 0
   }
 }

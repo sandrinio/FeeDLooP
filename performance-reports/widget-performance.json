@@ -1,0 +1,22 @@
+{
+  "timestamp": "2025-09-20T18:11:34.129Z",
+  "testResults": {
+    "widgetLoadThreshold": 500,
+    "renderThreshold": 200
+  },
+  "metrics": {
+    "jsHeapUsedSize": 0.62,
+    "jsHeapTotalSize": 1.25,
+    "scriptDuration": 0,
+    "taskDuration": 0.001798,
+    "layoutCount": 1,
+    "recalcStyleCount": 1
+  },
+  "networkConditions": {
+    "offline": false,
+    "downloadThroughput": 1500000,
+    "uploadThroughput": 750000,
+    "latency": 40
+  },
+  "recommendations": []
+}

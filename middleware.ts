@@ -1,15 +1,31 @@
 /**
- * Authentication Middleware for Protected Routes
+ * Authentication Middleware for Protected Routes + Security Headers
  * T045: Create authentication middleware for protected routes in middleware.ts
+ * T096: CORS configuration and security headers
  */
 
 import { auth } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { defaultSecurity, widgetSecurity, apiSecurity } from './lib/middleware/security'
 
 export default auth((req) => {
   const token = req.auth
   const { pathname } = req.nextUrl
+
+  // Determine which security configuration to use
+  let securityMiddleware = defaultSecurity
+  if (pathname.startsWith('/api/widget/')) {
+    securityMiddleware = widgetSecurity
+  } else if (pathname.startsWith('/api/')) {
+    securityMiddleware = apiSecurity
+  }
+
+  // Handle preflight CORS requests
+  const preflightResponse = securityMiddleware.handlePreflightRequest(req)
+  if (preflightResponse) {
+    return preflightResponse
+  }
 
   // API route protection
   if (pathname.startsWith('/api/')) {
@@ -40,11 +56,14 @@ export default auth((req) => {
       requestHeaders.set('x-user-id', token.user?.id || '')
       requestHeaders.set('x-user-email', token.user?.email || '')
 
-      return NextResponse.next({
+      const response = NextResponse.next({
         request: {
           headers: requestHeaders
         }
       })
+      securityMiddleware.applySecurityHeaders(response, req)
+      securityMiddleware.applyCORSHeaders(response, req)
+      return response
     }
   }
 
@@ -67,7 +86,12 @@ export default auth((req) => {
     }
   }
 
-  return NextResponse.next()
+  // Apply security headers to the response
+  const response = NextResponse.next()
+  securityMiddleware.applySecurityHeaders(response, req)
+  securityMiddleware.applyCORSHeaders(response, req)
+
+  return response
 })
 
 export const config = {

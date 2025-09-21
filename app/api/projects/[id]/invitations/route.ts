@@ -10,9 +10,9 @@ import { ServerSession } from '@/lib/auth/session'
 import { z } from 'zod'
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 // Validation schema for team invitation
@@ -21,9 +21,7 @@ const InviteUserSchema = z.object({
     .email('Invalid email format')
     .trim()
     .toLowerCase(),
-  role: z.enum(['member', 'admin'], {
-    errorMap: () => ({ message: 'Role must be either "member" or "admin"' })
-  }),
+  role: z.enum(['member', 'admin']),
   can_invite: z.boolean().optional().default(false)
 })
 
@@ -43,7 +41,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    const projectId = params.id
+    const { id: projectId } = await params
 
     // Validate UUID format
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -299,7 +297,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    const projectId = params.id
+    const { id: projectId } = await params
 
     // Validate UUID format
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Console Capture Test - FeeDLooP Widget</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .console-output {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+        .log-error { color: #ff6b6b; }
+        .log-warn { color: #ffd93d; }
+        .log-info { color: #74c0fc; }
+        .api-test {
+            background: #e7f5e7;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Console & Network Capture Test</h1>
+    <p>This page tests the FeeDLooP widget's ability to capture console logs and network requests.</p>
+
+    <!-- Widget Integration - Production -->
+    <script
+        src="https://feedloop.soula.ge/widget/dist/feedloop-widget.min.js"
+        data-project-key="qqa6gF2deJypP3VKEYODxu31yQLaygYz">
+    </script>
+
+    <div class="test-section">
+        <h2>📝 Console Log Tests</h2>
+        <p>Click buttons to generate different types of console logs:</p>
+
+        <button class="test-button" onclick="generateInfoLogs()">Generate Info Logs (10x)</button>
+        <button class="test-button" onclick="generateWarningLogs()">Generate Warning Logs (5x)</button>
+        <button class="test-button" onclick="generateErrorLogs()">Generate Error Logs (3x)</button>
+        <button class="test-button" onclick="generateMixedLogs()">Generate Mixed Logs (20x)</button>
+        <button class="test-button" onclick="generateLargeLogs()">Generate Large Logs (100x)</button>
+        <button class="test-button" onclick="clearConsole()">Clear Console</button>
+
+        <div class="console-output" id="consoleOutput">
+            <div class="log-entry">Console output will appear here...</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🌐 Network Request Tests</h2>
+        <p>Click buttons to generate network requests:</p>
+
+        <button class="test-button" onclick="makeAPIRequests()">Make API Requests (5x)</button>
+        <button class="test-button" onclick="makeImageRequests()">Load Images (3x)</button>
+        <button class="test-button" onclick="makeFailedRequests()">Make Failed Requests (3x)</button>
+        <button class="test-button" onclick="makeLargeRequest()">Make Large Request</button>
+
+        <div class="api-test">
+            <strong>Network Activity:</strong>
+            <div id="networkStatus">Ready to test network requests...</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 Widget Data Inspection</h2>
+        <p>Inspect the widget's captured diagnostic data:</p>
+
+        <button class="test-button" onclick="inspectWidgetData()">Inspect Captured Data</button>
+        <button class="test-button" onclick="testWidgetSubmission()">Test Widget Submission</button>
+
+        <div class="console-output" id="widgetDataOutput">
+            <div class="log-entry">Widget diagnostic data will appear here...</div>
+        </div>
+    </div>
+
+    <script>
+        // Console output display
+        const consoleOutput = document.getElementById('consoleOutput');
+        const networkStatus = document.getElementById('networkStatus');
+        const widgetDataOutput = document.getElementById('widgetDataOutput');
+
+        // Override console methods to display output
+        const originalLog = console.log;
+        const originalWarn = console.warn;
+        const originalError = console.error;
+
+        function addConsoleEntry(message, type = 'log') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            consoleOutput.appendChild(entry);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+
+            // Also call original console method
+            switch(type) {
+                case 'error': originalError(message); break;
+                case 'warn': originalWarn(message); break;
+                default: originalLog(message); break;
+            }
+        }
+
+        console.log = function(...args) {
+            addConsoleEntry(args.join(' '), 'info');
+            originalLog.apply(console, args);
+        };
+
+        console.warn = function(...args) {
+            addConsoleEntry(args.join(' '), 'warn');
+            originalWarn.apply(console, args);
+        };
+
+        console.error = function(...args) {
+            addConsoleEntry(args.join(' '), 'error');
+            originalError.apply(console, args);
+        };
+
+        // Test functions
+        function generateInfoLogs() {
+            for (let i = 1; i <= 10; i++) {
+                console.log(`Info log message ${i} - Testing information logging`);
+            }
+        }
+
+        function generateWarningLogs() {
+            for (let i = 1; i <= 5; i++) {
+                console.warn(`Warning log ${i} - Something might be wrong`);
+            }
+        }
+
+        function generateErrorLogs() {
+            for (let i = 1; i <= 3; i++) {
+                console.error(`Error log ${i} - Something went wrong!`);
+            }
+        }
+
+        function generateMixedLogs() {
+            for (let i = 1; i <= 20; i++) {
+                const types = ['log', 'warn', 'error'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                console[type](`Mixed log ${i} (${type}) - Random test message`);
+            }
+        }
+
+        function generateLargeLogs() {
+            for (let i = 1; i <= 100; i++) {
+                console.log(`Large batch log ${i} - Testing widget's log limit handling and optimization`);
+            }
+        }
+
+        function clearConsole() {
+            consoleOutput.innerHTML = '<div class="log-entry">Console cleared...</div>';
+        }
+
+        // Network request tests
+        async function makeAPIRequests() {
+            networkStatus.innerHTML = 'Making API requests...';
+            const promises = [];
+
+            for (let i = 1; i <= 5; i++) {
+                promises.push(
+                    fetch(`/api/health?test=${i}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(`API Request ${i} completed:`, data);
+                        })
+                        .catch(error => {
+                            console.error(`API Request ${i} failed:`, error);
+                        })
+                );
+            }
+
+            await Promise.all(promises);
+            networkStatus.innerHTML = 'API requests completed!';
+        }
+
+        async function makeImageRequests() {
+            networkStatus.innerHTML = 'Loading images...';
+
+            for (let i = 1; i <= 3; i++) {
+                const img = new Image();
+                img.onload = () => console.log(`Image ${i} loaded successfully`);
+                img.onerror = () => console.error(`Image ${i} failed to load`);
+                img.src = `https://picsum.photos/100/100?random=${i}`;
+            }
+
+            networkStatus.innerHTML = 'Image requests initiated!';
+        }
+
+        async function makeFailedRequests() {
+            networkStatus.innerHTML = 'Making failed requests...';
+
+            for (let i = 1; i <= 3; i++) {
+                try {
+                    await fetch(`/api/nonexistent-endpoint-${i}`);
+                } catch (error) {
+                    console.error(`Failed request ${i}:`, error);
+                }
+            }
+
+            networkStatus.innerHTML = 'Failed requests completed!';
+        }
+
+        async function makeLargeRequest() {
+            networkStatus.innerHTML = 'Making large request...';
+
+            try {
+                const response = await fetch('/widget/feedloop-widget.js');
+                const text = await response.text();
+                console.log(`Large request completed: ${text.length} bytes`);
+                networkStatus.innerHTML = 'Large request completed!';
+            } catch (error) {
+                console.error('Large request failed:', error);
+                networkStatus.innerHTML = 'Large request failed!';
+            }
+        }
+
+        // Widget inspection
+        function inspectWidgetData() {
+            // Access the widget's internal state if available
+            if (window.feedloopWidget && window.feedloopWidget.getDiagnosticData) {
+                const data = window.feedloopWidget.getDiagnosticData();
+                widgetDataOutput.innerHTML = `
+                    <div class="log-entry">Console Logs Captured: ${data.consoleLogs?.length || 0}</div>
+                    <div class="log-entry">Network Requests Captured: ${data.networkRequests?.length || 0}</div>
+                    <div class="log-entry">User Agent: ${data.userAgent || 'Not captured'}</div>
+                    <div class="log-entry">URL: ${data.url || 'Not captured'}</div>
+                    <div class="log-entry">Timestamp: ${data.timestamp || 'Not captured'}</div>
+                `;
+            } else {
+                widgetDataOutput.innerHTML = '<div class="log-entry log-warn">Widget diagnostic data not accessible via public API</div>';
+            }
+        }
+
+        function testWidgetSubmission() {
+            console.log('Testing widget submission with diagnostic data...');
+            widgetDataOutput.innerHTML = '<div class="log-entry">Check browser network tab and widget form for submission test</div>';
+
+            // Trigger the widget to open
+            const widget = document.getElementById('feedloop-widget');
+            if (widget) {
+                const triggerBtn = widget.querySelector('.feedloop-trigger-btn');
+                if (triggerBtn) {
+                    triggerBtn.click();
+                    console.log('Widget opened - ready for submission test');
+                }
+            }
+        }
+
+        // Initialize with some test data
+        window.addEventListener('load', function() {
+            console.log('Console & Network Capture Test Page Loaded');
+            console.log('Widget should be capturing this log message');
+
+            // Generate some initial network activity
+            fetch('/api/health')
+                .then(response => response.json())
+                .then(data => console.log('Initial health check:', data))
+                .catch(error => console.error('Initial health check failed:', error));
+        });
+    </script>
+</body>
+</html>

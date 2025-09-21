@@ -492,7 +492,7 @@ test.describe('Widget Configuration and Customization', () => {
             theme: 'dark',
             position: 'bottom-right',
             showContactField: false,
-            allowedTypes: ['bug', 'feature']
+            allowedTypes: ['bug', 'initiative']
           })
         </script>
       </body>

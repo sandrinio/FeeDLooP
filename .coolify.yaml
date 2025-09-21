@@ -1,0 +1,57 @@
+# Coolify Configuration for FeeDLooP
+# This file provides deployment configuration for Coolify
+
+version: "1.0"
+services:
+  feedloop:
+    type: "application"
+    dockerfile: "Dockerfile.coolify"
+    port: 3000
+    healthcheck:
+      path: "/api/health"
+      interval: 30
+      timeout: 10
+      retries: 3
+
+    environment:
+      # Core Application
+      NODE_ENV: "production"
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      NEXT_TELEMETRY_DISABLED: "1"
+
+      # Authentication (Set these in Coolify UI)
+      # NEXTAUTH_URL: "https://your-domain.com"
+      # NEXTAUTH_SECRET: "your-secure-secret"
+
+      # Database (Set these in Coolify UI)
+      # SUPABASE_URL: "https://your-project.supabase.co"
+      # SUPABASE_ANON_KEY: "your-anon-key"
+      # SUPABASE_SERVICE_ROLE_KEY: "your-service-key"
+
+      # Optional: MinIO Storage
+      # MINIO_ENDPOINT: "your-minio-endpoint"
+      # MINIO_ACCESS_KEY: "your-access-key"
+      # MINIO_SECRET_KEY: "your-secret-key"
+      # MINIO_BUCKET: "feedloop-attachments"
+
+    resources:
+      memory: "2GB"
+      cpu: "2"
+
+    volumes:
+      - "./public/widget:/app/public/widget"
+
+    build:
+      context: "."
+      dockerfile: "Dockerfile.coolify"
+      args:
+        NODE_OPTIONS: "--max-old-space-size=4096"
+
+    deploy:
+      strategy: "rolling"
+      wait_for_healthy: true
+
+networks:
+  default:
+    external: true

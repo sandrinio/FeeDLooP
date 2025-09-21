@@ -11,9 +11,9 @@ import { ServerSession } from '@/lib/auth/session'
 import { z } from 'zod'
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 /**

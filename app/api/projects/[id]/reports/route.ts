@@ -54,53 +54,98 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     // Parse query parameters for filtering
     const { searchParams } = new URL(request.url)
-    const status = searchParams.get('status')
-    const type = searchParams.get('type')
-    const priority = searchParams.get('priority')
+    const titleFilter = searchParams.get('filter[title]')
+    const typeFilter = searchParams.get('filter[type]')
+    const priorityFilter = searchParams.get('filter[priority]')
+    const reporterFilter = searchParams.get('filter[reporter]')
+    const dateFromFilter = searchParams.get('filter[dateFrom]')
+    const dateToFilter = searchParams.get('filter[dateTo]')
+    const sortColumn = searchParams.get('sort[column]') || 'created_at'
+    const sortDirection = searchParams.get('sort[direction]') || 'desc'
+    const includeParams = searchParams.get('include')?.split(',') || []
     const page = parseInt(searchParams.get('page') || '1')
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100) // Max 100 per page
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100) // Max 100 per page
     const offset = (page - 1) * limit
 
-    // Build query with optional filters
+    // Build select fields based on include parameters
+    let selectFields = `
+      id,
+      project_id,
+      title,
+      description,
+      type,
+      priority,
+      reporter_email,
+      reporter_name,
+      url,
+      created_at,
+      updated_at
+    `
+
+    // Add optional fields
+    if (includeParams.includes('console_logs_count') || includeParams.includes('network_requests_count') || includeParams.includes('attachments_count')) {
+      selectFields += `,
+        console_logs,
+        network_requests,
+        fl_attachments(id)
+      `
+    }
+
+    // Build base query
     let query = supabaseAdmin
       .from('fl_reports')
-      .select(`
-        id,
-        title,
-        description,
-        type,
-        status,
-        priority,
-        reporter_email,
-        reporter_name,
-        created_at,
-        updated_at,
-        fl_attachments(
-          id,
-          filename,
-          file_size,
-          mime_type,
-          created_at
-        )
-      `)
+      .select(selectFields)
       .eq('project_id', projectId)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1)
 
-    // Apply filters if provided
-    if (status && ['active', 'archived'].includes(status)) {
-      query = query.eq('status', status)
+    // Apply sorting
+    const validSortColumns = ['title', 'type', 'priority', 'created_at', 'reporter_name']
+    const sortCol = validSortColumns.includes(sortColumn) ? sortColumn : 'created_at'
+    const sortAsc = sortDirection === 'asc'
+    query = query.order(sortCol, { ascending: sortAsc })
+
+    // Apply filters
+    if (titleFilter) {
+      query = query.or(`title.ilike.%${titleFilter}%,description.ilike.%${titleFilter}%`)
     }
 
-    if (type && ['bug', 'initiative', 'feedback'].includes(type)) {
-      query = query.eq('type', type)
+    if (typeFilter && ['bug', 'initiative', 'feedback'].includes(typeFilter)) {
+      query = query.eq('type', typeFilter)
     }
 
-    if (priority && ['low', 'medium', 'high', 'critical'].includes(priority)) {
-      query = query.eq('priority', priority)
+    if (priorityFilter && ['low', 'medium', 'high', 'critical'].includes(priorityFilter)) {
+      query = query.eq('priority', priorityFilter)
     }
 
-    const { data: reports, error: reportsError } = await query
+    if (reporterFilter) {
+      query = query.or(`reporter_name.ilike.%${reporterFilter}%,reporter_email.ilike.%${reporterFilter}%`)
+    }
+
+    if (dateFromFilter) {
+      try {
+        const fromDate = new Date(dateFromFilter)
+        if (!isNaN(fromDate.getTime())) {
+          query = query.gte('created_at', fromDate.toISOString())
+        }
+      } catch (e) {
+        // Invalid date format, ignore filter
+      }
+    }
+
+    if (dateToFilter) {
+      try {
+        const toDate = new Date(dateToFilter)
+        if (!isNaN(toDate.getTime())) {
+          query = query.lte('created_at', toDate.toISOString())
+        }
+      } catch (e) {
+        // Invalid date format, ignore filter
+      }
+    }
+
+    // Apply pagination
+    query = query.range(offset, offset + limit - 1)
+
+    const { data: rawReports, error: reportsError } = await query
 
     if (reportsError) {
       console.error('Error fetching reports:', reportsError)
@@ -110,23 +155,68 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Get total count for pagination
+    // Process reports to add count metadata if requested
+    let reports = rawReports || []
+    if (includeParams.length > 0 && reports.length > 0) {
+      reports = reports.map(report => {
+        const processedReport: any = { ...report }
+
+        // Add console logs count
+        if (includeParams.includes('console_logs_count')) {
+          processedReport.console_logs_count = Array.isArray(report.console_logs) ? report.console_logs.length : 0
+          delete processedReport.console_logs // Remove actual logs data to keep response light
+        }
+
+        // Add network requests count
+        if (includeParams.includes('network_requests_count')) {
+          processedReport.network_requests_count = Array.isArray(report.network_requests) ? report.network_requests.length : 0
+          delete processedReport.network_requests // Remove actual requests data to keep response light
+        }
+
+        // Add attachments count
+        if (includeParams.includes('attachments_count')) {
+          processedReport.attachments_count = Array.isArray(report.fl_attachments) ? report.fl_attachments.length : 0
+          delete processedReport.fl_attachments // Remove actual attachments data to keep response light
+        }
+
+        return processedReport
+      })
+    }
+
+    // Get total count for pagination with same filters
     let countQuery = supabaseAdmin
       .from('fl_reports')
       .select('id', { count: 'exact', head: true })
       .eq('project_id', projectId)
 
     // Apply same filters to count query
-    if (status && ['active', 'archived'].includes(status)) {
-      countQuery = countQuery.eq('status', status)
+    if (titleFilter) {
+      countQuery = countQuery.or(`title.ilike.%${titleFilter}%,description.ilike.%${titleFilter}%`)
     }
-
-    if (type && ['bug', 'initiative', 'feedback'].includes(type)) {
-      countQuery = countQuery.eq('type', type)
+    if (typeFilter && ['bug', 'initiative', 'feedback'].includes(typeFilter)) {
+      countQuery = countQuery.eq('type', typeFilter)
     }
-
-    if (priority && ['low', 'medium', 'high', 'critical'].includes(priority)) {
-      countQuery = countQuery.eq('priority', priority)
+    if (priorityFilter && ['low', 'medium', 'high', 'critical'].includes(priorityFilter)) {
+      countQuery = countQuery.eq('priority', priorityFilter)
+    }
+    if (reporterFilter) {
+      countQuery = countQuery.or(`reporter_name.ilike.%${reporterFilter}%,reporter_email.ilike.%${reporterFilter}%`)
+    }
+    if (dateFromFilter) {
+      try {
+        const fromDate = new Date(dateFromFilter)
+        if (!isNaN(fromDate.getTime())) {
+          countQuery = countQuery.gte('created_at', fromDate.toISOString())
+        }
+      } catch (e) {}
+    }
+    if (dateToFilter) {
+      try {
+        const toDate = new Date(dateToFilter)
+        if (!isNaN(toDate.getTime())) {
+          countQuery = countQuery.lte('created_at', toDate.toISOString())
+        }
+      } catch (e) {}
     }
 
     const { count, error: countError } = await countQuery
@@ -135,20 +225,39 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       console.error('Error counting reports:', countError)
     }
 
+    // Get metadata for counts by type and priority
+    const { data: metadataData } = await supabaseAdmin
+      .from('fl_reports')
+      .select('type, priority')
+      .eq('project_id', projectId)
+
+    const metadata = {
+      total_by_type: {
+        bug: metadataData?.filter(r => r.type === 'bug').length || 0,
+        initiative: metadataData?.filter(r => r.type === 'initiative').length || 0,
+        feedback: metadataData?.filter(r => r.type === 'feedback').length || 0
+      },
+      total_by_priority: {
+        low: metadataData?.filter(r => r.priority === 'low').length || 0,
+        medium: metadataData?.filter(r => r.priority === 'medium').length || 0,
+        high: metadataData?.filter(r => r.priority === 'high').length || 0,
+        critical: metadataData?.filter(r => r.priority === 'critical').length || 0,
+        null: metadataData?.filter(r => !r.priority).length || 0
+      }
+    }
+
     // Format response with pagination metadata
     return NextResponse.json({
-      reports: reports || [],
+      reports,
       pagination: {
         page,
         limit,
         total: count || 0,
-        pages: Math.ceil((count || 0) / limit)
+        total_pages: Math.ceil((count || 0) / limit),
+        has_next: page < Math.ceil((count || 0) / limit),
+        has_prev: page > 1
       },
-      filters: {
-        status,
-        type,
-        priority
-      }
+      metadata
     })
 
   } catch (error) {

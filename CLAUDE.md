@@ -9,28 +9,29 @@ FeeDLooP_v1 is a feedback collection service for software development companies.
 ### Core Features
 - Project management portal with authentication
 - Embeddable JavaScript widget for feedback collection
-- Bug reports with automatic diagnostic data capture
+- Bug reports with automatic diagnostic data capture (console logs, network requests)
 - Image attachments (up to 5 images)
 - Rich text editing for initiatives and feedback
 - Team collaboration with role-based access
 - Export functionality (CSV format for Jira/Azure DevOps)
+- Enhanced reports dashboard with advanced filtering and terminal-style log viewer
 
 ## Technology Stack
 
 ### Core Framework
-- **Next.js** - Full-stack React framework with App Router
+- **Next.js 15.5.3** - Full-stack React framework with App Router
   - API Routes for backend endpoints
   - Server-side rendering and static generation
   - File-system based routing
   - Built-in optimization and performance features
 
 ### Frontend
-- **React** - UI library for building user interfaces
+- **React 18+** - UI library for building user interfaces
   - Functional components with hooks (useState, useEffect)
   - Component-based architecture
   - State management and lifecycle methods
 
-- **TypeScript** - Static type checking for JavaScript
+- **TypeScript 5.0+** - Static type checking for JavaScript
   - Interface definitions for type safety
   - Enhanced developer experience with IntelliSense
   - Compile-time error detection
@@ -39,6 +40,13 @@ FeeDLooP_v1 is a feedback collection service for software development companies.
   - Responsive design with breakpoint prefixes
   - Component styling with utility classes
   - Custom configuration and theming
+
+### Syntax Highlighting
+- **Prism.js** - Lightweight syntax highlighting library
+  - JSON and JavaScript syntax highlighting
+  - Used in console log viewer for better readability
+  - Terminal-style log display with color coding
+  - Enhanced developer experience in report details
 
 ### Authentication & Database
 - **NextAuth.js (Auth.js)** - Authentication solution for Next.js
@@ -76,73 +84,14 @@ FeeDLooP_v1 is a feedback collection service for software development companies.
   - Environment management
   - SSL certificate handling
 
-## Development Setup
+## Recent Changes
 
-### Prerequisites
-- Node.js 18+ and npm/yarn/pnpm
-- Docker (for local Supabase and MinIO)
-- Git
-
-### Installation Commands
-```bash
-# Initialize Next.js project
-npx create-next-app@latest feedloop-v1 --typescript --tailwind --app
-
-# Install core dependencies
-npm install @supabase/supabase-js next-auth react-hook-form zod
-
-# Install MinIO client
-npm install minio
-
-# Development server
-npm run dev
-```
-
-### Environment Variables
-```bash
-# Supabase
-SUPABASE_URL=your-supabase-url
-SUPABASE_ANON_KEY=your-supabase-anon-key
-
-# NextAuth
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-secret-key
-
-# MinIO
-MINIO_ENDPOINT=your-minio-endpoint
-MINIO_ACCESS_KEY=your-access-key
-MINIO_SECRET_KEY=your-secret-key
-```
-
-## Architecture
-
-### Project Structure
-```
-/app                 # Next.js App Router
-  /api              # API routes
-  /auth             # Authentication pages
-  /dashboard        # Project dashboard
-  /widget           # Embeddable widget
-/components         # Reusable React components
-/lib               # Utility functions and configurations
-/types             # TypeScript type definitions
-/public            # Static assets
-```
-
-### Database Tables (with fl_ prefix)
-- **fl_users** - User accounts and authentication
-- **fl_projects** - Project containers with integration keys
-- **fl_project_invitations** - User access and role management
-- **fl_reports** - Feedback submissions with metadata
-- **fl_attachments** - File uploads associated with reports
-
-### Key Components
-1. **Portal Dashboard** - Project management interface
-2. **Feedback Widget** - Embeddable client-side script
-3. **Authentication System** - User management and sessions
-4. **Database Layer** - Supabase integration with RLS
-5. **File Storage** - MinIO integration for attachments
-6. **Export System** - CSV generation for external tools
+### Enhanced Reports Dashboard (Feature 002)
+- **Advanced Data Table**: Implemented filtering, sorting, and improved UI for reports listing
+- **Terminal-Style Log Viewer**: Console logs display with syntax highlighting and copy functionality
+- **CSV Export with Selection**: Bulk export capability with customizable field selection
+- **Hover Tooltips**: Report descriptions shown on title hover
+- **Performance Optimizations**: Client-side filtering for <100ms response times
 
 ## Development Commands
 
@@ -164,9 +113,42 @@ npm run build       # Production build
 npm run start       # Start production server
 ```
 
-## Notes
+## Architecture
 
-### Best Practices
+### Project Structure
+```
+/app                 # Next.js App Router
+  /api              # API routes
+  /auth             # Authentication pages
+  /dashboard        # Project dashboard
+  /widget           # Embeddable widget
+/components         # Reusable React components
+  /reports          # Enhanced reports components
+/hooks              # Custom React hooks
+/lib               # Utility functions and configurations
+/types             # TypeScript type definitions
+/public            # Static assets
+/tests             # Test files
+```
+
+### Database Tables (with fl_ prefix)
+- **fl_users** - User accounts and authentication
+- **fl_projects** - Project containers with integration keys
+- **fl_project_invitations** - User access and role management
+- **fl_reports** - Feedback submissions with metadata and diagnostic data
+- **fl_attachments** - File uploads associated with reports
+
+### Key Components
+1. **Portal Dashboard** - Project management interface
+2. **Enhanced Reports Table** - Advanced filtering and export functionality
+3. **Feedback Widget** - Embeddable client-side script with diagnostic capture
+4. **Authentication System** - User management and sessions
+5. **Database Layer** - Supabase integration with RLS
+6. **File Storage** - MinIO integration for attachments
+7. **Export System** - CSV generation for external tools
+
+## Best Practices
+
 1. Use TypeScript interfaces for all data structures
 2. Implement proper error handling with Zod validation
 3. Follow Next.js App Router conventions
@@ -174,16 +156,11 @@ npm run start       # Start production server
 5. Implement proper authentication guards for protected routes
 6. Use React Hook Form for all form handling
 7. Follow Supabase RLS policies for data security
+8. Apply syntax highlighting for code display with Prism.js
 
-### Security Considerations
+## Security Considerations
 - Implement proper CORS policies for widget embedding
 - Validate all inputs with Zod schemas
 - Use Supabase RLS for data access control
 - Sanitize user-uploaded content
 - Implement rate limiting for API endpoints
-
-### Recent Changes
-- Added database schema with fl_ prefix for all tables
-- Defined API contracts in OpenAPI format
-- Created data model with proper relationships and RLS policies
-- Established quickstart guide for end-to-end testing

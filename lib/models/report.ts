@@ -10,7 +10,7 @@ export const ReportTypeSchema = z.enum(['bug', 'initiative', 'feedback'])
 export type ReportType = z.infer<typeof ReportTypeSchema>
 
 // Report Status Enum
-export const ReportStatusSchema = z.enum(['new', 'acknowledged', 'in_progress', 'resolved', 'closed'])
+export const ReportStatusSchema = z.enum(['active', 'archived'])
 export type ReportStatus = z.infer<typeof ReportStatusSchema>
 
 // Report Priority Enum
@@ -245,7 +245,7 @@ export const ReportSchema = z.object({
     .max(5000, 'Description must be less than 5000 characters'),
 
   status: ReportStatusSchema
-    .default('new'),
+    .default('active'),
 
   priority: ReportPrioritySchema
     .default('medium'),
@@ -421,15 +421,9 @@ export const getDefaultPriorityForType = (type: ReportType): ReportPriority => {
 
 export const getReportStatusColor = (status: ReportStatus): string => {
   switch (status) {
-    case 'new':
+    case 'active':
       return 'blue'
-    case 'acknowledged':
-      return 'yellow'
-    case 'in_progress':
-      return 'orange'
-    case 'resolved':
-      return 'green'
-    case 'closed':
+    case 'archived':
       return 'gray'
     default:
       return 'gray'
@@ -465,7 +459,7 @@ export const getReportTypeIcon = (type: ReportType): string => {
 }
 
 export const isReportResolved = (report: Report): boolean => {
-  return report.status === 'resolved' || report.status === 'closed'
+  return report.status === 'archived'
 }
 
 export const canEditReport = (report: Report, userId: string | null): boolean => {
