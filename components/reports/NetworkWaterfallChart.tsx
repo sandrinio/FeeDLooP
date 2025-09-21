@@ -14,7 +14,8 @@ import {
   MagnifyingGlassIcon,
   ArrowsUpDownIcon,
   ExclamationTriangleIcon,
-  LinkIcon
+  LinkIcon,
+  WifiIcon
 } from '@heroicons/react/24/outline'
 
 // Network request interface matching the enhanced data structure
@@ -42,6 +43,7 @@ interface NetworkWaterfallChartProps {
   requests: NetworkRequest[]
   correlatedItems?: string[] // IDs of correlated items to highlight
   selectedCorrelation?: string // Currently selected correlation
+  selectedRequestIndex?: number // Index of selected request to highlight
   onRequestClick?: (request: NetworkRequest, index: number) => void
   height?: number
   className?: string
@@ -62,6 +64,7 @@ export default function NetworkWaterfallChart({
   requests,
   correlatedItems = [],
   selectedCorrelation,
+  selectedRequestIndex,
   onRequestClick,
   height = 400,
   className = ''
@@ -121,74 +124,53 @@ export default function NetworkWaterfallChart({
 
   // Calculate chart dimensions and data
   const chartData = useMemo(() => {
+    console.log('Processing requests:', processedRequests.length, 'requests')
+    console.log('First few requests:', processedRequests.slice(0, 3))
+
     if (processedRequests.length === 0) return { bars: [], maxDuration: 0, startTime: 0 }
 
-    // Find the overall time range
-    const startTimes = processedRequests
-      .map(req => new Date(req.startTime || 0).getTime())
-      .filter(time => time > 0)
+    console.log('Sample request structure:', processedRequests[0])
 
-    const endTimes = processedRequests
-      .map(req => {
-        const start = new Date(req.startTime || 0).getTime()
-        return start + (req.duration || 0)
-      })
-      .filter(time => time > 0)
-
-    if (startTimes.length === 0) return { bars: [], maxDuration: 0, startTime: 0 }
-
-    const globalStartTime = Math.min(...startTimes)
-    const globalEndTime = Math.max(...endTimes)
-    const totalDuration = globalEndTime - globalStartTime
-
-    // Chart layout constants
-    const padding = 40
-    const rowHeight = 24
-    const chartWidth = 800 // Canvas width
-    const chartHeight = processedRequests.length * rowHeight + padding * 2
-    const barAreaWidth = chartWidth - padding * 2 - 200 // Reserve space for labels
-
-    const bars: WaterfallBar[] = processedRequests.map((request, index) => {
-      const requestStartTime = new Date(request.startTime || 0).getTime()
-      const requestDuration = request.duration || 0
-
-      // Calculate position relative to global timeline
-      const relativeStart = requestStartTime - globalStartTime
-      const x = padding + 200 + (relativeStart / totalDuration) * barAreaWidth
-      const width = Math.max(2, (requestDuration / totalDuration) * barAreaWidth)
-      const y = padding + index * rowHeight
-
-      // Determine color based on request properties
-      let color = '#3B82F6' // Default blue
-      const isCorrelated = correlatedItems.includes(request.correlation_id || '') ||
-                          (selectedCorrelation && request.correlation_id === selectedCorrelation)
-      const isErrorRelated = request.error_related || false
-
-      if (isErrorRelated) {
-        color = '#EF4444' // Red for error-related
-      } else if (isCorrelated) {
-        color = '#F59E0B' // Amber for correlated
-      } else if (request.status && request.status >= 400) {
-        color = '#DC2626' // Red for HTTP errors
-      } else if (request.status && request.status >= 300) {
-        color = '#D97706' // Orange for redirects
-      } else if (request.duration && request.duration > 1000) {
-        color = '#7C2D12' // Brown for slow requests
-      }
+    // Since requests only have duration but no start times, create artificial timeline
+    // This simulates a waterfall where requests happen sequentially
+    let currentTime = 0
+    const requestsWithTimeline = processedRequests.map((req, index) => {
+      const duration = req.duration || 0
+      const startTime = currentTime
+      const endTime = currentTime + duration
+      currentTime += Math.max(duration * 0.1, 10) // Small gap between requests
 
       return {
-        request,
-        index,
-        x,
-        y,
-        width,
-        color,
-        isCorrelated,
-        isErrorRelated
+        ...req,
+        url: req.name, // Map 'name' field to 'url' for compatibility
+        artificialStartTime: startTime,
+        artificialEndTime: endTime,
+        duration: duration
       }
     })
 
-    return { bars, maxDuration: totalDuration, startTime: globalStartTime }
+    const maxDuration = Math.max(...requestsWithTimeline.map(req => req.artificialEndTime), 1000)
+    const timelineWidth = 510 // Width of timeline area (760 - 250 start position)
+
+    // Create bars for each request
+    const bars = requestsWithTimeline.map((req, index) => {
+      const rowHeight = 35 // Increased spacing to prevent text overlap
+      const startX = (req.artificialStartTime / maxDuration) * timelineWidth
+      const width = Math.max((req.duration / maxDuration) * timelineWidth, 2) // Minimum 2px width
+
+      return {
+        x: startX,
+        y: index * rowHeight,
+        width: width,
+        height: 8, // Much thinner bars
+        color: req.type === 'fetch' ? '#10B981' : req.type === 'script' ? '#3B82F6' : '#6B7280',
+        request: req,
+        label: req.name ? req.name.split('/').pop() : `Request ${index + 1}`,
+        index: index
+      }
+    })
+
+    return { bars, maxDuration, startTime: 0, requestsWithTimeline }
   }, [processedRequests, correlatedItems, selectedCorrelation])
 
   // Draw the waterfall chart
@@ -199,10 +181,10 @@ export default function NetworkWaterfallChart({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Set canvas size
+    // Set canvas size with adequate space for all requests
     const dpr = window.devicePixelRatio || 1
     const displayWidth = 800
-    const displayHeight = Math.max(height, chartData.bars.length * 24 + 80)
+    const displayHeight = Math.max(height, chartData.bars.length * 35 + 120) // Updated for new row height
 
     canvas.width = displayWidth * dpr
     canvas.height = displayHeight * dpr
@@ -221,10 +203,13 @@ export default function NetworkWaterfallChart({
 
     // Vertical grid lines (time markers)
     const timeMarkers = 5
+    const timelineStartX = 250 // Match where bars start
+    const timelineWidth = displayWidth - timelineStartX - 40
+
     for (let i = 0; i <= timeMarkers; i++) {
-      const x = 240 + (i / timeMarkers) * (displayWidth - 280)
+      const x = timelineStartX + (i / timeMarkers) * timelineWidth
       ctx.beginPath()
-      ctx.moveTo(x, 40)
+      ctx.moveTo(x, 60) // Start grid lines below time labels
       ctx.lineTo(x, displayHeight - 40)
       ctx.stroke()
 
@@ -237,54 +222,77 @@ export default function NetworkWaterfallChart({
     }
 
     // Draw waterfall bars
+    console.log('Drawing bars:', chartData.bars.length, 'bars')
+
     chartData.bars.forEach((bar, index) => {
+      const adjustedY = bar.y + 60 // Offset all bars down to align with grid
+
       // Highlight hovered bar
       if (hoveredIndex === index) {
         ctx.fillStyle = '#F3F4F6'
-        ctx.fillRect(0, bar.y - 2, displayWidth, 28)
+        ctx.fillRect(0, adjustedY - 2, displayWidth, 35)
       }
 
-      // Draw the timing bar
+      // Highlight selected bar
+      if (selectedRequestIndex === index) {
+        ctx.fillStyle = '#DBEAFE'
+        ctx.fillRect(0, adjustedY - 2, displayWidth, 35)
+      }
+
+      // Draw thin timing bars without borders
+      const barX = 250 + bar.x // Bar position relative to timeline start
+      const barWidth = Math.max(20, bar.width) // Minimum 20px width for visibility
+      const barHeight = 8 // Thin bars
+      const barY = adjustedY + 12 // Centered in larger row, using adjusted Y
+
+      // Draw the main timing bar - no background, no borders
       ctx.fillStyle = bar.color
-      ctx.fillRect(bar.x, bar.y + 4, bar.width, 16)
+      ctx.fillRect(barX, barY, barWidth, barHeight)
 
-      // Add correlation indicator
-      if (bar.isCorrelated) {
-        ctx.strokeStyle = '#F59E0B'
-        ctx.lineWidth = 2
-        ctx.strokeRect(bar.x - 1, bar.y + 3, bar.width + 2, 18)
-      }
+      // Correlation indicator removed to avoid borders
 
       // Add error indicator
       if (bar.isErrorRelated) {
         ctx.fillStyle = '#DC2626'
         ctx.beginPath()
-        ctx.arc(bar.x - 8, bar.y + 12, 4, 0, 2 * Math.PI)
+        ctx.arc(barX - 8, barY + barHeight/2, 4, 0, 2 * Math.PI)
         ctx.fill()
       }
 
-      // Draw request label
+      // Draw request label (URL or name)
       ctx.fillStyle = '#374151'
       ctx.font = '12px system-ui'
       ctx.textAlign = 'left'
-      const label = bar.request.name.length > 30
-        ? bar.request.name.substring(0, 30) + '...'
-        : bar.request.name
-      ctx.fillText(label, 10, bar.y + 16)
+      const url = bar.request.url || bar.request.name || 'Unknown Request'
+      // Extract filename from URL for better readability
+      const urlParts = url.split('/')
+      const filename = urlParts[urlParts.length - 1] || url
+      const label = filename.length > 25 ? filename.substring(0, 25) + '...' : filename
+      ctx.fillText(label, 10, adjustedY + 16)
+
+      // Show method if available
+      if (bar.request.method) {
+        ctx.fillStyle = '#9CA3AF'
+        ctx.font = '10px system-ui'
+        ctx.fillText(bar.request.method, 10, adjustedY + 28)
+      }
 
       // Draw duration and size info
       ctx.fillStyle = '#6B7280'
       ctx.font = '11px system-ui'
       ctx.textAlign = 'right'
-      const duration = `${bar.request.duration || 0}ms`
+      const duration = `${bar.request.duration || bar.request.response_time || bar.request.responseTime || 0}ms`
       const size = bar.request.size ? ` | ${formatBytes(bar.request.size)}` : ''
-      ctx.fillText(duration + size, 230, bar.y + 16)
+      ctx.fillText(duration + size, 230, adjustedY + 16)
     })
+
+    // Draw title and description
+    // Timeline title removed to prevent overlapping
 
     // Draw legends
     drawLegend(ctx, displayWidth, displayHeight)
 
-  }, [chartData, hoveredIndex, height])
+  }, [chartData, hoveredIndex, selectedRequestIndex, height])
 
   // Handle mouse events for interactivity
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -295,9 +303,10 @@ export default function NetworkWaterfallChart({
     const x = event.clientX - rect.left
     const y = event.clientY - rect.top
 
-    // Find hovered bar
+    // Find hovered bar (accounting for vertical offset)
     const hoveredBar = chartData.bars.find((bar, index) => {
-      return y >= bar.y && y <= bar.y + 24
+      const adjustedY = bar.y + 60
+      return y >= adjustedY && y <= adjustedY + 35
     })
 
     if (hoveredBar) {
@@ -305,9 +314,10 @@ export default function NetworkWaterfallChart({
 
       // Show tooltip
       const request = hoveredBar.request
+      const duration = request.duration || request.response_time || request.responseTime || 0
       const tooltipContent = `
-        ${request.name}
-        Duration: ${request.duration || 0}ms
+        ${request.name || request.url || 'Network Request'}
+        Duration: ${duration}ms
         Status: ${request.status || 'N/A'}
         Size: ${request.size ? formatBytes(request.size) : 'N/A'}
         ${request.method ? `Method: ${request.method}` : ''}

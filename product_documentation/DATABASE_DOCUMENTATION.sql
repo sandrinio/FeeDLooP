@@ -160,6 +160,8 @@ CREATE TABLE IF NOT EXISTS fl_reports (
     performance_metrics JSON, -- Enhanced: Core Web Vitals and performance timing data
     interaction_data JSON,    -- Enhanced: Anonymized user interaction tracking (consent-based)
     error_context JSON,       -- Enhanced: Error patterns, unhandled errors, and correlation data
+    browser_info JSON,        -- Enhanced: Browser and device information
+    page_url TEXT,            -- Enhanced: Full page URL where the report was submitted
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -196,6 +198,7 @@ CREATE TABLE IF NOT EXISTS fl_attachments (
     report_id UUID NOT NULL REFERENCES fl_reports(id) ON DELETE CASCADE,
     filename VARCHAR(255) NOT NULL,
     file_path VARCHAR(500) NOT NULL,
+    file_url TEXT, -- Public URL for downloading/accessing the file
     file_size BIGINT NOT NULL,
     mime_type VARCHAR(100) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
