@@ -357,8 +357,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 }
 
 /**
- * DELETE /api/projects/[id] - Delete project
- * Deletes the project and all associated data (cascade delete)
+ * DELETE /api/projects/[id] - Delete project with enhanced storage cleanup
+ * Deletes the project, all associated data, and storage files
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
@@ -383,10 +383,30 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Check if user is the project owner (only owners can delete projects)
+    // Parse and validate request body if present (for enhanced deletion)
+    let deletionRequest = null
+    let isEnhancedDeletion = false
+
+    try {
+      const body = await request.text()
+      if (body.trim()) {
+        deletionRequest = JSON.parse(body)
+        isEnhancedDeletion = true
+      }
+    } catch (parseError) {
+      if (request.headers.get('content-type')?.includes('application/json')) {
+        return NextResponse.json(
+          { error: 'Invalid JSON in request body' },
+          { status: 400 }
+        )
+      }
+      // If no JSON content-type, treat as simple deletion
+    }
+
+    // Get project details for validation
     const { data: project, error: projectError } = await supabaseAdmin
       .from('fl_projects')
-      .select('owner_id')
+      .select('owner_id, name')
       .eq('id', projectId)
       .single()
 
@@ -404,7 +424,107 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Delete the project (cascade delete will handle related records)
+    // Enhanced deletion with validation
+    if (isEnhancedDeletion && deletionRequest) {
+      const { ProjectDeletionRequestSchema, validateDeletionForm } = await import('@/lib/validation/project-settings')
+
+      // Validate deletion request schema
+      const validation = ProjectDeletionRequestSchema.safeParse(deletionRequest)
+
+      if (!validation.success) {
+        return NextResponse.json(
+          {
+            error: 'Validation failed',
+            details: validation.error.issues.map(issue => ({
+              field: issue.path.join('.'),
+              message: issue.message
+            }))
+          },
+          { status: 400 }
+        )
+      }
+
+      // Validate deletion form with project name confirmation
+      const formValidation = validateDeletionForm(validation.data, project.name)
+
+      if (!formValidation.isValid) {
+        const errorMessages = Object.values(formValidation.errors)
+        return NextResponse.json(
+          { error: errorMessages[0] || 'Validation failed' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Enhanced deletion with storage cleanup
+    if (isEnhancedDeletion) {
+      const { StorageCleanupService } = await import('@/lib/storage/cleanup')
+
+      // Count database records before deletion for reporting
+      const { count: reportCount } = await supabaseAdmin
+        .from('fl_reports')
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', projectId)
+
+      const { count: attachmentCount } = await supabaseAdmin
+        .from('fl_attachments')
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', projectId)
+
+      const { count: invitationCount } = await supabaseAdmin
+        .from('fl_project_invitations')
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', projectId)
+
+      // Perform storage cleanup first (before database deletion)
+      console.log('Starting storage cleanup for project:', projectId)
+      const cleanupSummary = await StorageCleanupService.gracefulCleanup(projectId)
+
+      // Delete the project (cascade delete will handle related records)
+      const { error: deleteError } = await supabaseAdmin
+        .from('fl_projects')
+        .delete()
+        .eq('id', projectId)
+
+      if (deleteError) {
+        console.error('Error deleting project from database:', deleteError)
+        return NextResponse.json(
+          {
+            error: 'Failed to delete project',
+            error_details: {
+              code: 'DATABASE_DELETE_ERROR',
+              message: 'Project deletion failed during database operation',
+              recoverable: true
+            }
+          },
+          { status: 500 }
+        )
+      }
+
+      // Calculate total database records deleted
+      const totalDbRecords = 1 + (reportCount || 0) + (attachmentCount || 0) + (invitationCount || 0)
+      cleanupSummary.database_records_deleted = totalDbRecords
+
+      // Prepare enhanced response
+      const response: any = {
+        success: true,
+        message: 'Project deleted successfully',
+        cleanup_summary: cleanupSummary
+      }
+
+      // Include error details if there were storage cleanup failures
+      if (cleanupSummary.storage_cleanup_failures.length > 0) {
+        response.error_details = {
+          code: 'PARTIAL_STORAGE_CLEANUP_FAILURE',
+          message: `Storage cleanup completed with ${cleanupSummary.storage_cleanup_failures.length} failures`,
+          recoverable: false
+        }
+      }
+
+      return NextResponse.json(response)
+    }
+
+    // Simple deletion (backward compatibility)
     const { error: deleteError } = await supabaseAdmin
       .from('fl_projects')
       .delete()
@@ -418,7 +538,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Return 204 No Content for successful deletion
+    // Return 204 No Content for simple deletion (backward compatibility)
     return new NextResponse(null, { status: 204 })
 
   } catch (error) {
