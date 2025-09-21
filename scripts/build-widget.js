@@ -28,7 +28,7 @@ const config = {
     css: 'widget.css',
     js: 'feedloop-widget.js'
   },
-  version: process.env.npm_package_version || '1.0.0',
+  version: process.env.npm_package_version || '2.0.0',
   buildId: Date.now().toString(36)
 }
 

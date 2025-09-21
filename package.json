@@ -48,6 +48,7 @@
     "react-dom": "19.1.0",
     "react-hook-form": "^7.62.0",
     "uuid": "^13.0.0",
+    "xlsx": "^0.18.5",
     "zod": "^4.1.9"
   },
   "devDependencies": {
@@ -62,9 +63,11 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/uuid": "^10.0.0",
+    "@types/web": "^0.0.269",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
     "jest": "^30.1.3",
+    "jest-canvas-mock": "^2.5.2",
     "jest-environment-jsdom": "^30.1.2",
     "jest-junit": "^16.0.0",
     "jest-performance": "^2.1.0",

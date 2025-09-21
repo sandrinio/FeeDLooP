@@ -67,7 +67,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100) // Max 100 per page
     const offset = (page - 1) * limit
 
-    // Build select fields based on include parameters
+    // Build select fields - always include console_logs and network_requests for dashboard
+    // Also include enhanced v2.0.0+ diagnostic data
     let selectFields = `
       id,
       project_id,
@@ -79,14 +80,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       reporter_name,
       url,
       created_at,
-      updated_at
+      updated_at,
+      console_logs,
+      network_requests,
+      performance_metrics,
+      interaction_data,
+      error_context
     `
 
-    // Add optional fields
-    if (includeParams.includes('console_logs_count') || includeParams.includes('network_requests_count') || includeParams.includes('attachments_count')) {
+    // Add attachments field if needed
+    if (includeParams.includes('console_logs_count') || includeParams.includes('network_requests_count') || includeParams.includes('attachments_count') || includeParams.includes('performance_metrics_count') || includeParams.includes('error_context_count')) {
       selectFields += `,
-        console_logs,
-        network_requests,
         fl_attachments(id)
       `
     }
@@ -164,19 +168,35 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         // Add console logs count
         if (includeParams.includes('console_logs_count')) {
           processedReport.console_logs_count = Array.isArray(report.console_logs) ? report.console_logs.length : 0
-          delete processedReport.console_logs // Remove actual logs data to keep response light
         }
 
         // Add network requests count
         if (includeParams.includes('network_requests_count')) {
           processedReport.network_requests_count = Array.isArray(report.network_requests) ? report.network_requests.length : 0
-          delete processedReport.network_requests // Remove actual requests data to keep response light
         }
 
         // Add attachments count
         if (includeParams.includes('attachments_count')) {
           processedReport.attachments_count = Array.isArray(report.fl_attachments) ? report.fl_attachments.length : 0
           delete processedReport.fl_attachments // Remove actual attachments data to keep response light
+        }
+
+        // Add performance metrics availability flag
+        if (includeParams.includes('performance_metrics_count')) {
+          processedReport.has_performance_metrics = report.performance_metrics ? true : false
+          processedReport.performance_metrics_keys = report.performance_metrics ? Object.keys(report.performance_metrics).length : 0
+        }
+
+        // Add error context count
+        if (includeParams.includes('error_context_count')) {
+          processedReport.has_error_context = report.error_context ? true : false
+          processedReport.error_count = report.error_context?.total_error_count || 0
+        }
+
+        // Add interaction data availability
+        if (includeParams.includes('interaction_data_count')) {
+          processedReport.has_interaction_data = report.interaction_data ? true : false
+          processedReport.interaction_events_count = report.interaction_data?.events?.length || 0
         }
 
         return processedReport

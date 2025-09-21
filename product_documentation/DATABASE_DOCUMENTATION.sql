@@ -1,7 +1,7 @@
--- FeeDLooP MVP Database Setup Script
+-- FeeDLooP Enhanced Database Setup Script
 -- This script creates all tables, indexes, RLS policies, and constraints
 -- Execute this in your Supabase SQL Editor
--- LAST UPDATED: December 2024 - Reflects actual deployed database state
+-- LAST UPDATED: September 2025 - Includes Enhanced Log Visualization & Export Templates
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -140,7 +140,7 @@ DO $$ BEGIN
 END $$;
 
 -- ============================================================================
--- TABLE 4: fl_reports (Feedback submissions with metadata)
+-- TABLE 4: fl_reports (Feedback submissions with metadata and enhanced diagnostics)
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS fl_reports (
@@ -157,6 +157,9 @@ CREATE TABLE IF NOT EXISTS fl_reports (
     user_agent TEXT,
     console_logs JSON,
     network_requests JSON,
+    performance_metrics JSON, -- Enhanced: Core Web Vitals and performance timing data
+    interaction_data JSON,    -- Enhanced: Anonymized user interaction tracking (consent-based)
+    error_context JSON,       -- Enhanced: Error patterns, unhandled errors, and correlation data
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -263,6 +266,74 @@ DO $$ BEGIN
 END $$;
 
 -- ============================================================================
+-- TABLE 7: fl_export_templates (Export configuration templates)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS fl_export_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES fl_projects(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    format VARCHAR(20) NOT NULL CHECK (format IN ('csv', 'json', 'excel', 'ndjson')),
+    template_type VARCHAR(20) NOT NULL CHECK (template_type IN ('default', 'jira', 'azure_devops')),
+    include_fields JSONB NOT NULL DEFAULT '{}',
+    data_format VARCHAR(20) NOT NULL DEFAULT 'flattened' CHECK (data_format IN ('flattened', 'structured')),
+    compression BOOLEAN NOT NULL DEFAULT false,
+    filters JSONB DEFAULT '{}',
+    is_default BOOLEAN NOT NULL DEFAULT false,
+    created_by UUID NOT NULL REFERENCES fl_users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+
+    -- Ensure only one default template per project
+    CONSTRAINT unique_default_per_project EXCLUDE (project_id WITH =) WHERE (is_default = true)
+);
+
+-- ============================================================================
+-- TABLE 8: fl_scheduled_exports (Scheduled export configurations)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS fl_scheduled_exports (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES fl_projects(id) ON DELETE CASCADE,
+    template_id UUID NOT NULL REFERENCES fl_export_templates(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    schedule_cron VARCHAR(100) NOT NULL, -- Cron expression for scheduling
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    last_run_at TIMESTAMP WITH TIME ZONE,
+    next_run_at TIMESTAMP WITH TIME ZONE,
+    run_count INTEGER NOT NULL DEFAULT 0,
+    export_filters JSONB DEFAULT '{}', -- Additional filters for this scheduled export
+    notification_emails TEXT[], -- Array of email addresses for notifications
+    created_by UUID NOT NULL REFERENCES fl_users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
+-- ============================================================================
+-- TABLE 9: fl_export_history (Export execution tracking)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS fl_export_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES fl_projects(id) ON DELETE CASCADE,
+    template_id UUID REFERENCES fl_export_templates(id) ON DELETE SET NULL,
+    scheduled_export_id UUID REFERENCES fl_scheduled_exports(id) ON DELETE SET NULL,
+    export_type VARCHAR(20) NOT NULL CHECK (export_type IN ('manual', 'scheduled')),
+    format VARCHAR(20) NOT NULL,
+    total_records INTEGER NOT NULL DEFAULT 0,
+    file_size_bytes BIGINT,
+    file_url TEXT, -- URL to download the generated export
+    status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
+    error_message TEXT,
+    executed_by UUID REFERENCES fl_users(id) ON DELETE SET NULL,
+    started_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    completed_at TIMESTAMP WITH TIME ZONE,
+    expires_at TIMESTAMP WITH TIME ZONE -- When the export file expires and gets cleaned up
+);
+
+-- ============================================================================
 -- PERFORMANCE INDEXES (Query optimization)
 -- ============================================================================
 
@@ -295,6 +366,36 @@ CREATE INDEX IF NOT EXISTS idx_fl_pending_invitations_token ON fl_pending_invita
 CREATE INDEX IF NOT EXISTS idx_fl_pending_invitations_expires_at ON fl_pending_invitations(expires_at);
 CREATE INDEX IF NOT EXISTS idx_fl_pending_invitations_project_status ON fl_pending_invitations(project_id, accepted_at);
 
+-- Enhanced diagnostic data indexes (for performance metrics filtering)
+CREATE INDEX IF NOT EXISTS idx_fl_reports_perf_lcp ON fl_reports(CAST(performance_metrics->'web_vitals'->>'lcp' AS numeric));
+CREATE INDEX IF NOT EXISTS idx_fl_reports_perf_fcp ON fl_reports(CAST(performance_metrics->'web_vitals'->>'fcp' AS numeric));
+CREATE INDEX IF NOT EXISTS idx_fl_reports_perf_cls ON fl_reports(CAST(performance_metrics->'web_vitals'->>'cls' AS numeric));
+CREATE INDEX IF NOT EXISTS idx_fl_reports_perf_fid ON fl_reports(CAST(performance_metrics->'web_vitals'->>'fid' AS numeric));
+CREATE INDEX IF NOT EXISTS idx_fl_reports_perf_tti ON fl_reports(CAST(performance_metrics->'web_vitals'->>'tti' AS numeric));
+CREATE INDEX IF NOT EXISTS idx_fl_reports_perf_ttfb ON fl_reports(CAST(performance_metrics->'web_vitals'->>'ttfb' AS numeric));
+CREATE INDEX IF NOT EXISTS idx_fl_reports_perf_category ON fl_reports((performance_metrics->'categorization'->>'overall'));
+CREATE INDEX IF NOT EXISTS idx_fl_reports_error_count ON fl_reports(CAST(error_context->>'total_error_count' AS numeric));
+CREATE INDEX IF NOT EXISTS idx_fl_reports_error_rate ON fl_reports(CAST(error_context->>'error_rate' AS numeric));
+CREATE INDEX IF NOT EXISTS idx_fl_reports_interaction_consent ON fl_reports(CAST(interaction_data->>'consent_given' AS boolean));
+CREATE INDEX IF NOT EXISTS idx_fl_reports_engagement_score ON fl_reports(CAST(interaction_data->>'engagement_score' AS numeric));
+
+-- Export templates optimization
+CREATE INDEX IF NOT EXISTS idx_export_templates_project_id ON fl_export_templates(project_id);
+CREATE INDEX IF NOT EXISTS idx_export_templates_created_by ON fl_export_templates(created_by);
+CREATE INDEX IF NOT EXISTS idx_export_templates_is_default ON fl_export_templates(project_id, is_default) WHERE is_default = true;
+
+-- Scheduled exports optimization
+CREATE INDEX IF NOT EXISTS idx_scheduled_exports_project_id ON fl_scheduled_exports(project_id);
+CREATE INDEX IF NOT EXISTS idx_scheduled_exports_template_id ON fl_scheduled_exports(template_id);
+CREATE INDEX IF NOT EXISTS idx_scheduled_exports_next_run ON fl_scheduled_exports(next_run_at) WHERE is_active = true;
+
+-- Export history optimization
+CREATE INDEX IF NOT EXISTS idx_export_history_project_id ON fl_export_history(project_id);
+CREATE INDEX IF NOT EXISTS idx_export_history_template_id ON fl_export_history(template_id);
+CREATE INDEX IF NOT EXISTS idx_export_history_scheduled_export_id ON fl_export_history(scheduled_export_id);
+CREATE INDEX IF NOT EXISTS idx_export_history_status ON fl_export_history(status);
+CREATE INDEX IF NOT EXISTS idx_export_history_expires_at ON fl_export_history(expires_at) WHERE expires_at IS NOT NULL;
+
 -- ============================================================================
 -- ROW LEVEL SECURITY (RLS) SETUP
 -- ============================================================================
@@ -306,6 +407,9 @@ ALTER TABLE fl_project_invitations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE fl_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE fl_attachments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE fl_pending_invitations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE fl_export_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE fl_scheduled_exports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE fl_export_history ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies if they exist to avoid conflicts
 DROP POLICY IF EXISTS users_own_data ON fl_users;
@@ -315,6 +419,17 @@ DROP POLICY IF EXISTS report_access ON fl_reports;
 DROP POLICY IF EXISTS attachment_access ON fl_attachments;
 DROP POLICY IF EXISTS widget_submission ON fl_reports;
 DROP POLICY IF EXISTS pending_invitation_access ON fl_pending_invitations;
+DROP POLICY IF EXISTS "Users can view export templates for their projects" ON fl_export_templates;
+DROP POLICY IF EXISTS "Users can create export templates for their projects" ON fl_export_templates;
+DROP POLICY IF EXISTS "Users can update export templates for their projects" ON fl_export_templates;
+DROP POLICY IF EXISTS "Users can delete export templates for their projects" ON fl_export_templates;
+DROP POLICY IF EXISTS "Users can view scheduled exports for their projects" ON fl_scheduled_exports;
+DROP POLICY IF EXISTS "Users can create scheduled exports for their projects" ON fl_scheduled_exports;
+DROP POLICY IF EXISTS "Users can update scheduled exports for their projects" ON fl_scheduled_exports;
+DROP POLICY IF EXISTS "Users can delete scheduled exports for their projects" ON fl_scheduled_exports;
+DROP POLICY IF EXISTS "Users can view export history for their projects" ON fl_export_history;
+DROP POLICY IF EXISTS "System can insert export history" ON fl_export_history;
+DROP POLICY IF EXISTS "System can update export history" ON fl_export_history;
 
 -- Users can only access their own data
 CREATE POLICY users_own_data ON fl_users
@@ -378,6 +493,115 @@ USING (
         WHERE user_id = auth.uid()
     )
 );
+
+-- RLS Policies for export templates
+CREATE POLICY "Users can view export templates for their projects"
+    ON fl_export_templates FOR SELECT
+    USING (
+        project_id IN (
+            SELECT project_id
+            FROM fl_project_invitations
+            WHERE user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can create export templates for their projects"
+    ON fl_export_templates FOR INSERT
+    WITH CHECK (
+        project_id IN (
+            SELECT project_id
+            FROM fl_project_invitations
+            WHERE user_id = auth.uid()
+            AND role IN ('owner', 'member')
+        )
+        AND created_by = auth.uid()
+    );
+
+CREATE POLICY "Users can update export templates for their projects"
+    ON fl_export_templates FOR UPDATE
+    USING (
+        project_id IN (
+            SELECT project_id
+            FROM fl_project_invitations
+            WHERE user_id = auth.uid()
+            AND role IN ('owner', 'member')
+        )
+    );
+
+CREATE POLICY "Users can delete export templates for their projects"
+    ON fl_export_templates FOR DELETE
+    USING (
+        project_id IN (
+            SELECT project_id
+            FROM fl_project_invitations
+            WHERE user_id = auth.uid()
+            AND role IN ('owner')
+        )
+    );
+
+-- RLS Policies for scheduled exports
+CREATE POLICY "Users can view scheduled exports for their projects"
+    ON fl_scheduled_exports FOR SELECT
+    USING (
+        project_id IN (
+            SELECT project_id
+            FROM fl_project_invitations
+            WHERE user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can create scheduled exports for their projects"
+    ON fl_scheduled_exports FOR INSERT
+    WITH CHECK (
+        project_id IN (
+            SELECT project_id
+            FROM fl_project_invitations
+            WHERE user_id = auth.uid()
+            AND role IN ('owner')
+        )
+        AND created_by = auth.uid()
+    );
+
+CREATE POLICY "Users can update scheduled exports for their projects"
+    ON fl_scheduled_exports FOR UPDATE
+    USING (
+        project_id IN (
+            SELECT project_id
+            FROM fl_project_invitations
+            WHERE user_id = auth.uid()
+            AND role IN ('owner')
+        )
+    );
+
+CREATE POLICY "Users can delete scheduled exports for their projects"
+    ON fl_scheduled_exports FOR DELETE
+    USING (
+        project_id IN (
+            SELECT project_id
+            FROM fl_project_invitations
+            WHERE user_id = auth.uid()
+            AND role IN ('owner')
+        )
+    );
+
+-- RLS Policies for export history
+CREATE POLICY "Users can view export history for their projects"
+    ON fl_export_history FOR SELECT
+    USING (
+        project_id IN (
+            SELECT project_id
+            FROM fl_project_invitations
+            WHERE user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "System can insert export history"
+    ON fl_export_history FOR INSERT
+    WITH CHECK (true); -- This will be used by system processes
+
+CREATE POLICY "System can update export history"
+    ON fl_export_history FOR UPDATE
+    USING (true); -- This will be used by system processes
 
 -- ============================================================================
 -- TRIGGERS AND FUNCTIONS
@@ -459,6 +683,43 @@ DROP TRIGGER IF EXISTS process_pending_invitations_on_register ON fl_users;
 CREATE TRIGGER process_pending_invitations_on_register
     AFTER INSERT ON fl_users
     FOR EACH ROW EXECUTE FUNCTION fl_process_pending_invitations();
+
+-- Function to automatically update updated_at timestamps for export tables
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Create triggers for updated_at on export tables
+CREATE TRIGGER update_export_templates_updated_at
+    BEFORE UPDATE ON fl_export_templates
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_scheduled_exports_updated_at
+    BEFORE UPDATE ON fl_scheduled_exports
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Function to clean up expired export files
+CREATE OR REPLACE FUNCTION cleanup_expired_exports()
+RETURNS INTEGER AS $$
+DECLARE
+    deleted_count INTEGER := 0;
+BEGIN
+    -- Delete expired export history records
+    DELETE FROM fl_export_history
+    WHERE expires_at IS NOT NULL
+    AND expires_at < now();
+
+    GET DIAGNOSTICS deleted_count = ROW_COUNT;
+
+    RETURN deleted_count;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Function to clean up expired invitations
 CREATE OR REPLACE FUNCTION fl_cleanup_expired_invitations()
@@ -586,9 +847,9 @@ CREATE TRIGGER update_fl_reports_updated_at BEFORE UPDATE ON fl_reports
 -- DATABASE VERIFICATION AND STATUS
 -- ============================================================================
 
--- Verify all tables exist
+-- Verify all tables exist (should show 9 tables)
 SELECT
-    'FeeDLooP Database Setup Verification' as status,
+    'FeeDLooP Enhanced Database Setup Verification' as status,
     COUNT(*) as feedloop_tables_created
 FROM information_schema.tables
 WHERE table_name LIKE 'fl_%' AND table_schema = 'public';
@@ -627,13 +888,16 @@ ORDER BY typname;
 -- ============================================================================
 
 /*
-CURRENT DEPLOYED TABLES (6 total):
+CURRENT DEPLOYED TABLES (9 total):
 1. fl_users - User accounts with first_name, last_name, company, email_verified fields
 2. fl_projects - Project containers with integration keys for widget access
 3. fl_project_invitations - Team membership and role management for registered users
-4. fl_pending_invitations - Email-based invitations for non-registered users (NEW)
-5. fl_reports - Feedback submissions with diagnostic data
+4. fl_pending_invitations - Email-based invitations for non-registered users
+5. fl_reports - Feedback submissions with enhanced diagnostic data (performance, interaction, error context)
 6. fl_attachments - File uploads (max 5 per report)
+7. fl_export_templates - Export configuration templates with field selection and formatting options
+8. fl_scheduled_exports - Cron-based scheduled export configurations with email notifications
+9. fl_export_history - Export execution tracking with file management and cleanup
 
 ENUM TYPES (4 total):
 - user_role: 'owner', 'member'
@@ -641,44 +905,74 @@ ENUM TYPES (4 total):
 - report_status: 'active', 'archived'
 - priority_level: 'low', 'medium', 'high', 'critical'
 
+ENHANCED DIAGNOSTIC DATA:
+- performance_metrics: Core Web Vitals (FCP, LCP, CLS, FID, TTI, TTFB), memory usage, categorization
+- interaction_data: Consent-based user interaction tracking, engagement scores, anonymized events
+- error_context: Unhandled errors, promise rejections, error patterns, correlation data
+
+EXPORT SYSTEM:
+- Multiple formats: CSV, JSON, Excel XLSX, NDJSON
+- Template-based configurations (Default, JIRA, Azure DevOps)
+- Advanced field selection with enhanced diagnostic data
+- GZIP compression support
+- Scheduled exports with cron expressions
+- Export history tracking with automatic cleanup
+- Role-based access control (owners can manage scheduled exports)
+
 SECURITY:
-- Row Level Security enabled on all tables
+- Row Level Security enabled on all 9 tables
 - Authenticated users can only access their data
 - Anonymous users can submit widget reports
 - Project-based access control implemented
 - Secure token-based invitation system with expiration
+- Export templates and scheduled exports restricted by project membership
+- System-level policies for export history management
 
 TRIGGERS:
 - Auto-create owner invitation on project creation
 - Limit attachments to 5 per report
-- Auto-update updated_at timestamps
-- Auto-process pending invitations on user registration (NEW)
+- Auto-update updated_at timestamps (all tables)
+- Auto-process pending invitations on user registration
+- Export template and scheduled export timestamp updates
 
 FUNCTIONS:
 - fl_process_pending_invitations() - Processes pending invitations during registration
 - fl_cleanup_expired_invitations() - Utility for cleaning expired invitations
 - fl_get_project_invitations(UUID) - Unified view of active and pending invitations
 - fl_get_pending_invitations_for_email(VARCHAR) - Get pending invitations by email
+- cleanup_expired_exports() - Removes expired export history records
+- update_updated_at_column() - Automatic timestamp updates
 
-INDEXES:
-- Performance optimization for dashboard queries
-- Fast project and user lookups
-- Efficient report filtering
-- Optimized pending invitation queries (email, project, token lookups)
+PERFORMANCE INDEXES:
+- Dashboard query optimization (reports, projects, users)
+- Enhanced diagnostic data filtering (Core Web Vitals, error metrics, engagement)
+- Export template and scheduled export lookups
+- Export history tracking and cleanup operations
+- Pending invitation email and token lookups
 
 ENHANCED FEATURES:
+- Advanced export system with multiple formats and scheduling
+- Enhanced diagnostic data collection (performance, interactions, errors)
+- Template-based export configurations
 - Email-based invitations for non-registered users
 - Automatic project access upon registration
 - 7-day invitation expiration with cleanup
+- Export file lifecycle management with automatic cleanup
 - Unified team management UI for active and pending members
-- Secure invitation tokens with unique constraints
 */
 
-COMMENT ON DATABASE postgres IS 'FeeDLooP Enhanced Database - Production Ready Schema with 6 tables, email-based invitations, RLS, and automated triggers';
+COMMENT ON DATABASE postgres IS 'FeeDLooP Enhanced Database - Production Ready Schema with 9 tables, enhanced diagnostics, export system, email invitations, RLS, and automated triggers';
 
 -- Add detailed table comments
 COMMENT ON TABLE fl_pending_invitations IS 'Email-based invitations for users who have not yet registered. Automatically processed when user registers with matching email.';
+COMMENT ON TABLE fl_export_templates IS 'Export configuration templates with field selection, formatting options, and integration-specific mappings (JIRA, Azure DevOps).';
+COMMENT ON TABLE fl_scheduled_exports IS 'Cron-based scheduled export configurations with email notifications and template-based data formatting.';
+COMMENT ON TABLE fl_export_history IS 'Export execution tracking with file management, status monitoring, and automatic cleanup of expired files.';
+COMMENT ON COLUMN fl_reports.performance_metrics IS 'Core Web Vitals and performance timing data collected from browser Performance Observer API. Includes FCP, LCP, CLS, FID, TTI, TTFB metrics plus resource timing and memory usage.';
+COMMENT ON COLUMN fl_reports.interaction_data IS 'Anonymized user interaction tracking data (requires explicit user consent). Includes click, scroll, input events with timestamps and engagement metrics. No PII stored.';
+COMMENT ON COLUMN fl_reports.error_context IS 'Enhanced error information including unhandled errors, promise rejections, CORS errors, CSP violations, and detected error patterns with correlation data.';
 COMMENT ON FUNCTION fl_process_pending_invitations() IS 'Automatically converts pending invitations to active project memberships when user registers.';
 COMMENT ON FUNCTION fl_cleanup_expired_invitations() IS 'Removes expired pending invitations. Should be called periodically via cron job.';
 COMMENT ON FUNCTION fl_get_project_invitations(UUID) IS 'Returns both active members and pending invitations for a project in unified format.';
 COMMENT ON FUNCTION fl_get_pending_invitations_for_email(VARCHAR) IS 'Returns all pending invitations for an email address, used during registration flow.';
+COMMENT ON FUNCTION cleanup_expired_exports() IS 'Removes expired export history records and associated files. Should be called periodically via cron job.';

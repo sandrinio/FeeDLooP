@@ -27,8 +27,14 @@ import {
   WifiIcon,
   ClipboardDocumentIcon,
   EyeIcon,
-  EyeSlashIcon
+  EyeSlashIcon,
+  ChartBarIcon,
+  CpuChipIcon,
+  LinkIcon
 } from '@heroicons/react/24/outline'
+import NetworkWaterfallChart from '@/components/reports/NetworkWaterfallChart'
+import PerformanceMetrics from '@/components/reports/PerformanceMetrics'
+import ErrorCorrelation from '@/components/reports/ErrorCorrelation'
 
 interface ConsoleLog {
   level: 'error' | 'warn' | 'info' | 'log'
@@ -38,10 +44,14 @@ interface ConsoleLog {
 }
 
 interface NetworkRequest {
-  url: string
-  method: string
-  status: number
-  response_time: number
+  name: string
+  duration: number
+  size: number
+  type: string
+  url?: string
+  method?: string
+  status?: number
+  response_time?: number
   request_headers?: Record<string, string>
   response_headers?: Record<string, string>
   request_body?: string
@@ -54,14 +64,18 @@ interface Report {
   description: string
   type: 'bug' | 'initiative' | 'feedback'
   priority: 'low' | 'medium' | 'high' | 'critical'
-  user_email?: string
-  user_name?: string
+  reporter_email?: string
+  reporter_name?: string
   created_at: string
   updated_at: string
   url?: string
   user_agent?: string
   console_logs?: ConsoleLog[]
   network_requests?: NetworkRequest[]
+  // Enhanced v2.0.0+ data
+  performance_metrics?: any
+  interaction_data?: any
+  error_context?: any
   fl_attachments?: Array<{
     id: string
     filename: string
@@ -82,9 +96,16 @@ export default function EnhancedReportDetailPage() {
   const [consoleLogsExpanded, setConsoleLogsExpanded] = useState(false)
   const [networkRequestsExpanded, setNetworkRequestsExpanded] = useState(false)
 
+  // Enhanced data state
+  const [correlationData, setCorrelationData] = useState<any>(null)
+  const [correlationLoading, setCorrelationLoading] = useState(false)
+  const [selectedCorrelation, setSelectedCorrelation] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState('overview')
+
   useEffect(() => {
     if (projectId && reportId) {
       fetchReport()
+      fetchCorrelationData()
     }
   }, [projectId, reportId])
 
@@ -102,6 +123,21 @@ export default function EnhancedReportDetailPage() {
       setError('Failed to load report')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchCorrelationData = async () => {
+    setCorrelationLoading(true)
+    try {
+      const response = await fetch(`/api/projects/${projectId}/reports/correlations?report_id=${reportId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setCorrelationData(data)
+      }
+    } catch (err) {
+      console.error('Failed to load correlation data:', err)
+    } finally {
+      setCorrelationLoading(false)
     }
   }
 
@@ -248,19 +284,97 @@ export default function EnhancedReportDetailPage() {
         </div>
       </div>
 
+      {/* Tab Navigation */}
+      <div className="bg-white shadow-sm border-b border-gray-200 mb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex space-x-8">
+            {[
+              { id: 'overview', label: 'Overview', icon: DocumentTextIcon },
+              { id: 'console-logs', label: 'Console Logs', icon: CodeBracketIcon, count: report.console_logs?.length },
+              { id: 'network-requests', label: 'Network Requests', icon: WifiIcon, count: report.network_requests?.length },
+              { id: 'performance', label: 'Performance', icon: ChartBarIcon, show: !!report.performance_metrics },
+              { id: 'correlations', label: 'Error Correlations', icon: LinkIcon, show: !!report.error_context || !!correlationData?.correlations?.length }
+            ].map(tab => {
+              if (tab.show === false) return null
+
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                  data-testid={`tab-${tab.id}`}
+                >
+                  <tab.icon className="w-5 h-5" />
+                  <span>{tab.label}</span>
+                  {tab.count !== undefined && (
+                    <span className="bg-gray-100 text-gray-900 rounded-full px-2 py-1 text-xs">
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Description */}
-          <div className="bg-white shadow-lg rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Description</h2>
-            <div className="prose max-w-none">
-              <p className="text-gray-700 whitespace-pre-wrap">{report.description}</p>
-            </div>
-          </div>
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <>
+              {/* Description */}
+              <div className="bg-white shadow-lg rounded-lg p-6">
+                <h2 className="text-lg font-medium text-gray-900 mb-4">Description</h2>
+                <div className="prose max-w-none">
+                  <p className="text-gray-700 whitespace-pre-wrap">{report.description}</p>
+                </div>
+              </div>
 
-          {/* Enhanced Console Logs Section */}
-          {report.console_logs && report.console_logs.length > 0 && (
+              {/* Attachments in Overview */}
+              {report.fl_attachments && report.fl_attachments.length > 0 && (
+                <div className="bg-white shadow-lg rounded-lg p-6">
+                  <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                    <PaperClipIcon className="h-5 w-5 mr-2" />
+                    Attachments ({report.fl_attachments.length})
+                  </h2>
+                  <div className="space-y-3">
+                    {report.fl_attachments.map((attachment) => (
+                      <div key={attachment.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <DocumentTextIcon className="h-5 w-5 text-gray-400" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{attachment.filename}</p>
+                            <p className="text-xs text-gray-500">
+                              {Math.round(attachment.file_size / 1024)} KB
+                            </p>
+                          </div>
+                        </div>
+                        {attachment.url && (
+                          <a
+                            href={attachment.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-500 text-sm"
+                          >
+                            Download
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Console Logs Tab */}
+          {activeTab === 'console-logs' && report.console_logs && report.console_logs.length > 0 && (
             <div className="bg-white shadow-lg rounded-lg">
               <div className="px-6 py-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
@@ -287,59 +401,80 @@ export default function EnhancedReportDetailPage() {
                 </div>
               </div>
               <div className="p-6">
-                <div className={`space-y-3 ${consoleLogsExpanded ? '' : 'max-h-96 overflow-y-auto'}`}>
-                  {report.console_logs.map((log, index) => {
-                    const formattedMessage = formatLogMessage(log.message)
-                    const contentType = detectContentType(formattedMessage)
-                    return (
-                      <div key={index} className="bg-gray-900 rounded-lg overflow-hidden">
-                        <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
-                          <div className="flex items-center space-x-3">
-                            <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${getLogLevelColor(log.level)}`}>
-                              {log.level.toUpperCase()}
+                <div className="bg-gray-900 rounded-lg overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-green-400 text-sm font-mono">$</span>
+                      <span className="text-gray-300 text-sm">Console Output</span>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(report.console_logs?.map(log => formatLogMessage(log.message)).join('\n') || '')}
+                      className="text-gray-400 hover:text-white transition-colors"
+                      title="Copy all logs"
+                    >
+                      <ClipboardDocumentIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className={`p-4 font-mono text-sm leading-relaxed ${consoleLogsExpanded ? '' : 'max-h-96 overflow-y-auto'}`}>
+                    {report.console_logs.map((log, index) => {
+                      const formattedMessage = formatLogMessage(log.message)
+                      const timestamp = log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : ''
+                      const level = log.level || 'info'
+
+                      return (
+                        <div key={index} className="mb-1 group">
+                          <div className="flex items-start space-x-2">
+                            <span className="text-gray-500 text-xs shrink-0 mt-0.5 w-20">
+                              {timestamp}
                             </span>
-                            <span className="text-gray-400 text-xs">
-                              {new Date(log.timestamp).toLocaleString()}
+                            <span className={`text-xs font-medium shrink-0 mt-0.5 w-12 ${
+                              level === 'error' ? 'text-red-400' :
+                              level === 'warn' ? 'text-yellow-400' :
+                              level === 'info' ? 'text-blue-400' :
+                              'text-gray-400'
+                            }`}>
+                              {level.toUpperCase()}
                             </span>
+                            <span className="text-gray-100 flex-1 break-all">
+                              {formattedMessage}
+                            </span>
+                            <button
+                              onClick={() => copyToClipboard(formattedMessage)}
+                              className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-gray-300 transition-all shrink-0"
+                              title="Copy this log"
+                            >
+                              <ClipboardDocumentIcon className="h-3 w-3" />
+                            </button>
                           </div>
-                          <button
-                            onClick={() => copyToClipboard(formattedMessage)}
-                            className="text-gray-400 hover:text-white transition-colors"
-                            title="Copy log message"
-                          >
-                            <ClipboardDocumentIcon className="h-4 w-4" />
-                          </button>
-                        </div>
-                        <div className="p-4">
-                          <pre className={`language-${contentType} text-sm overflow-x-auto`}>
-                            <code
-                              className={`language-${contentType}`}
-                              dangerouslySetInnerHTML={{
-                                __html: highlightCode(formattedMessage, contentType)
-                              }}
-                            />
-                          </pre>
                           {log.stack && (
-                            <details className="mt-3 border-t border-gray-700 pt-3">
-                              <summary className="text-yellow-400 cursor-pointer text-sm mb-2">
-                                Stack Trace
-                              </summary>
-                              <pre className="text-red-400 text-xs whitespace-pre-wrap bg-gray-800 p-3 rounded border-l-4 border-red-500">
-                                {log.stack}
-                              </pre>
-                            </details>
+                            <div className="ml-32 mt-1 text-xs text-red-400 bg-gray-800 p-2 rounded border-l-2 border-red-500">
+                              {log.stack}
+                            </div>
                           )}
                         </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Enhanced Network Requests Section */}
-          {report.network_requests && report.network_requests.length > 0 && (
+          {/* Network Requests Tab */}
+          {activeTab === 'network-requests' && (
+            <NetworkWaterfallChart
+              requests={report.network_requests || []}
+              correlatedItems={correlationData?.correlations?.filter((c: any) => c.type === 'Error-Network').map((c: any) => c.id) || []}
+              selectedCorrelation={selectedCorrelation}
+              onRequestClick={(request, index) => {
+                console.log('Request clicked:', request, index)
+              }}
+              className="mb-8"
+            />
+          )}
+
+          {/* Network Requests Tab - Legacy View */}
+          {activeTab === 'network-requests' && report.network_requests && report.network_requests.length > 0 && (
             <div className="bg-white shadow-lg rounded-lg">
               <div className="px-6 py-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
@@ -366,169 +501,105 @@ export default function EnhancedReportDetailPage() {
                 </div>
               </div>
               <div className="p-6">
-                <div className={`space-y-4 ${networkRequestsExpanded ? '' : 'max-h-96 overflow-y-auto'}`}>
-                  {report.network_requests.map((request, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
-                      <div className="flex items-center justify-between p-4 bg-gray-50 border-b border-gray-200">
-                        <div className="flex items-center space-x-3">
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {request.method}
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-200">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-green-600 text-sm font-mono">→</span>
+                      <span className="text-gray-700 text-sm">Network Activity</span>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(report.network_requests?.map(req => `${req.type.toUpperCase()} ${req.name} ${req.duration}ms ${req.size}b`).join('\n') || '')}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                      title="Copy all requests"
+                    >
+                      <ClipboardDocumentIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className={`p-4 font-mono text-sm leading-relaxed ${networkRequestsExpanded ? '' : 'max-h-96 overflow-y-auto'}`}>
+                    {report.network_requests.map((request, index) => (
+                      <div key={index} className="mb-2 group">
+                        <div className="flex items-start space-x-3">
+                          <span className="text-xs font-medium shrink-0 w-14 mt-0.5 text-blue-600">
+                            {request.type.toUpperCase()}
                           </span>
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
-                            {request.status}
+                          <span className="text-xs text-gray-500 shrink-0 w-16 mt-0.5">
+                            {request.duration}ms
                           </span>
-                          <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                            {request.response_time}ms
+                          <span className="text-xs text-gray-500 shrink-0 w-16 mt-0.5">
+                            {request.size > 0 ? `${request.size}b` : '---'}
                           </span>
+                          <span className="text-gray-700 flex-1 break-all">
+                            {request.name}
+                          </span>
+                          <button
+                            onClick={() => copyToClipboard(request.name)}
+                            className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-gray-700 transition-all shrink-0"
+                            title="Copy URL"
+                          >
+                            <ClipboardDocumentIcon className="h-3 w-3" />
+                          </button>
                         </div>
-                        <button
-                          onClick={() => copyToClipboard(request.url)}
-                          className="text-gray-400 hover:text-gray-600 transition-colors"
-                          title="Copy URL"
-                        >
-                          <ClipboardDocumentIcon className="h-4 w-4" />
-                        </button>
-                      </div>
-                      <div className="p-4">
-                        <div className="text-sm text-gray-900 font-mono break-all mb-4 bg-gray-100 p-3 rounded">
-                          {request.url}
-                        </div>
-                        {networkRequestsExpanded && (
-                          <div className="space-y-4">
+                        {networkRequestsExpanded && (request.request_body || request.response_body || request.request_headers || request.response_headers) && (
+                          <div className="ml-24 mt-2 space-y-2">
                             {request.request_body && (
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                                  Request Body
-                                  <button
-                                    onClick={() => copyToClipboard(request.request_body || '')}
-                                    className="ml-2 text-gray-400 hover:text-gray-600"
-                                    title="Copy request body"
-                                  >
-                                    <ClipboardDocumentIcon className="h-3 w-3" />
-                                  </button>
-                                </h4>
-                                <pre className="language-json text-xs bg-gray-900 text-white p-3 rounded max-h-32 overflow-y-auto">
-                                  <code
-                                    className="language-json"
-                                    dangerouslySetInnerHTML={{
-                                      __html: highlightCode(formatLogMessage(request.request_body), 'json')
-                                    }}
-                                  />
-                                </pre>
+                              <div className="text-xs">
+                                <span className="text-gray-500">Request:</span>
+                                <div className="bg-gray-100 p-2 rounded mt-1 max-h-20 overflow-y-auto">
+                                  {request.request_body}
+                                </div>
                               </div>
                             )}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {request.request_headers && (
-                                <div>
-                                  <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                                    Request Headers
-                                    <button
-                                      onClick={() => copyToClipboard(JSON.stringify(request.request_headers, null, 2))}
-                                      className="ml-2 text-gray-400 hover:text-gray-600"
-                                      title="Copy request headers"
-                                    >
-                                      <ClipboardDocumentIcon className="h-3 w-3" />
-                                    </button>
-                                  </h4>
-                                  <pre className="language-json text-xs bg-gray-900 text-white p-3 rounded max-h-32 overflow-y-auto">
-                                    <code
-                                      className="language-json"
-                                      dangerouslySetInnerHTML={{
-                                        __html: highlightCode(JSON.stringify(request.request_headers, null, 2), 'json')
-                                      }}
-                                    />
-                                  </pre>
-                                </div>
-                              )}
-                              {request.response_headers && (
-                                <div>
-                                  <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                                    Response Headers
-                                    <button
-                                      onClick={() => copyToClipboard(JSON.stringify(request.response_headers, null, 2))}
-                                      className="ml-2 text-gray-400 hover:text-gray-600"
-                                      title="Copy response headers"
-                                    >
-                                      <ClipboardDocumentIcon className="h-3 w-3" />
-                                    </button>
-                                  </h4>
-                                  <pre className="language-json text-xs bg-gray-900 text-white p-3 rounded max-h-32 overflow-y-auto">
-                                    <code
-                                      className="language-json"
-                                      dangerouslySetInnerHTML={{
-                                        __html: highlightCode(JSON.stringify(request.response_headers, null, 2), 'json')
-                                      }}
-                                    />
-                                  </pre>
-                                </div>
-                              )}
-                            </div>
                             {request.response_body && (
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                                  Response Body
-                                  <button
-                                    onClick={() => copyToClipboard(request.response_body || '')}
-                                    className="ml-2 text-gray-400 hover:text-gray-600"
-                                    title="Copy response body"
-                                  >
-                                    <ClipboardDocumentIcon className="h-3 w-3" />
-                                  </button>
-                                </h4>
-                                <pre className="language-json text-xs bg-gray-900 text-white p-3 rounded max-h-40 overflow-y-auto">
-                                  <code
-                                    className="language-json"
-                                    dangerouslySetInnerHTML={{
-                                      __html: highlightCode(formatLogMessage(request.response_body), 'json')
-                                    }}
-                                  />
-                                </pre>
+                              <div className="text-xs">
+                                <span className="text-gray-500">Response:</span>
+                                <div className="bg-gray-100 p-2 rounded mt-1 max-h-20 overflow-y-auto">
+                                  {typeof request.response_body === 'string' ? request.response_body : JSON.stringify(request.response_body, null, 2)}
+                                </div>
                               </div>
                             )}
                           </div>
                         )}
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Attachments */}
-          {report.fl_attachments && report.fl_attachments.length > 0 && (
-            <div className="bg-white shadow-lg rounded-lg p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                <PaperClipIcon className="h-5 w-5 mr-2" />
-                Attachments ({report.fl_attachments.length})
-              </h2>
-              <div className="space-y-3">
-                {report.fl_attachments.map((attachment) => (
-                  <div key={attachment.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <DocumentTextIcon className="h-5 w-5 text-gray-400" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{attachment.filename}</p>
-                        <p className="text-xs text-gray-500">
-                          {Math.round(attachment.file_size / 1024)} KB
-                        </p>
-                      </div>
-                    </div>
-                    {attachment.url && (
-                      <a
-                        href={attachment.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-500 text-sm"
-                      >
-                        Download
-                      </a>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+          {/* Performance Tab */}
+          {activeTab === 'performance' && (
+            <PerformanceMetrics
+              performanceMetrics={report.performance_metrics}
+              className="mb-8"
+              showRecommendations={true}
+              showTrends={false}
+            />
           )}
+
+          {/* Error Correlations Tab */}
+          {activeTab === 'correlations' && (
+            <ErrorCorrelation
+              correlations={correlationData?.correlations || []}
+              patterns={correlationData?.patterns || []}
+              insights={correlationData?.insights || []}
+              summary={correlationData?.summary || {
+                total_correlations: 0,
+                confidence_score: 0,
+                types_found: [],
+                analysis_window: '24 hours'
+              }}
+              loading={correlationLoading}
+              onCorrelationClick={(correlation) => {
+                setSelectedCorrelation(correlation.id)
+              }}
+              onPatternClick={(pattern) => {
+                console.log('Pattern clicked:', pattern)
+              }}
+              className="mb-8"
+            />
+          )}
+
         </div>
 
         {/* Sidebar */}
@@ -537,16 +608,16 @@ export default function EnhancedReportDetailPage() {
           <div className="bg-white shadow-lg rounded-lg p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Reporter Information</h3>
             <div className="space-y-3">
-              {report.user_name && (
+              {report.reporter_name && (
                 <div className="flex items-center">
                   <UserIcon className="h-5 w-5 text-gray-400 mr-3" />
-                  <span className="text-sm text-gray-900">{report.user_name}</span>
+                  <span className="text-sm text-gray-900">{report.reporter_name}</span>
                 </div>
               )}
-              {report.user_email && (
+              {report.reporter_email && (
                 <div className="flex items-center">
                   <span className="text-sm text-gray-500">Email:</span>
-                  <span className="text-sm text-gray-900 ml-2">{report.user_email}</span>
+                  <span className="text-sm text-gray-900 ml-2">{report.reporter_email}</span>
                 </div>
               )}
               <div className="flex items-center">

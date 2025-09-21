@@ -60,7 +60,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Get report details with attachments
+    // Get report details with attachments, console_logs, and network_requests
     const { data: report, error: reportError } = await supabaseAdmin
       .from('fl_reports')
       .select(`
@@ -72,6 +72,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         priority,
         reporter_email,
         reporter_name,
+        url,
+        user_agent,
+        console_logs,
+        network_requests,
         created_at,
         updated_at,
         fl_attachments(

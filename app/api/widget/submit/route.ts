@@ -60,6 +60,11 @@ export async function POST(request: NextRequest) {
     const consoleLogs = formData.get('console_logs') as string | null
     const networkRequests = formData.get('network_requests') as string | null
 
+    // Enhanced v2.0.0+ widget data
+    const performanceMetricsRaw = formData.get('performance_metrics') as string | null
+    const interactionDataRaw = formData.get('interaction_data') as string | null
+    const errorContextRaw = formData.get('error_context') as string | null
+
     // Check for compressed diagnostic data
     const compressedDiagnosticData = formData.get('diagnostic_data_compressed') as string | null
     const compressionType = formData.get('compression_type') as string | null
@@ -69,6 +74,41 @@ export async function POST(request: NextRequest) {
     let parsedDiagnosticData = null
     let parsedConsoleLogs = null
     let parsedNetworkRequests = null
+
+    // Parse enhanced v2.0.0+ diagnostic data
+    let parsedPerformanceMetrics = null
+    let parsedInteractionData = null
+    let parsedErrorContext = null
+
+    // Parse performance metrics
+    if (performanceMetricsRaw) {
+      try {
+        parsedPerformanceMetrics = JSON.parse(performanceMetricsRaw)
+        console.log('Successfully parsed performance metrics')
+      } catch (error) {
+        console.error('Failed to parse performance metrics:', error)
+      }
+    }
+
+    // Parse interaction data
+    if (interactionDataRaw) {
+      try {
+        parsedInteractionData = JSON.parse(interactionDataRaw)
+        console.log('Successfully parsed interaction data')
+      } catch (error) {
+        console.error('Failed to parse interaction data:', error)
+      }
+    }
+
+    // Parse error context
+    if (errorContextRaw) {
+      try {
+        parsedErrorContext = JSON.parse(errorContextRaw)
+        console.log('Successfully parsed error context')
+      } catch (error) {
+        console.error('Failed to parse error context:', error)
+      }
+    }
 
     // Handle compressed diagnostic data
     if (compressedDiagnosticData && compressionType === 'gzip') {
@@ -175,6 +215,10 @@ export async function POST(request: NextRequest) {
             }))
             .slice(0, 100) : []
       },
+      // Enhanced v2.0.0+ diagnostic data
+      performance_metrics: parsedPerformanceMetrics,
+      interaction_data: parsedInteractionData,
+      error_context: parsedErrorContext,
       attachments: attachmentData
     }
 
@@ -240,6 +284,10 @@ export async function POST(request: NextRequest) {
         user_agent: validatedData.user_info?.browser,
         console_logs: parsedConsoleLogs || null,
         network_requests: parsedNetworkRequests || null,
+        // Enhanced v2.0.0+ diagnostic data
+        performance_metrics: validatedData.performance_metrics || null,
+        interaction_data: validatedData.interaction_data || null,
+        error_context: validatedData.error_context || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })

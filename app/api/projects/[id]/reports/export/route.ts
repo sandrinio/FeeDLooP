@@ -1,12 +1,18 @@
 /**
- * T020: Reports Export API Endpoint
- * POST /api/projects/[id]/reports/export - Export reports in various formats
+ * T020: Enhanced Reports Export API Endpoint
+ * POST /api/projects/[id]/reports/export - Export reports in various formats with enhanced data
+ * Enhanced Log Visualization - Phase 6: Advanced export functionality
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/database/supabase'
 import { ServerSession } from '@/lib/auth/session'
 import { z } from 'zod'
+import { utils, writeFile } from 'xlsx'
+import { createReadStream } from 'fs'
+import { promisify } from 'util'
+import { gzip } from 'zlib'
+const gzipAsync = promisify(gzip)
 
 interface RouteParams {
   params: Promise<{
@@ -14,11 +20,12 @@ interface RouteParams {
   }>
 }
 
-// Export configuration validation schema
+// Enhanced export configuration validation schema
 const ExportConfigSchema = z.object({
-  format: z.enum(['csv', 'json'], {
-    errorMap: () => ({ message: 'Format must be "csv" or "json"' })
+  format: z.enum(['csv', 'json', 'excel', 'ndjson'], {
+    errorMap: () => ({ message: 'Format must be "csv", "json", "excel", or "ndjson"' })
   }),
+  compression: z.boolean().default(false),
   report_ids: z.array(z.string().uuid('Invalid report ID')).optional(),
   filters: z.object({
     title: z.string().optional(),
@@ -39,8 +46,16 @@ const ExportConfigSchema = z.object({
     url: z.boolean().default(true),
     created_at: z.boolean().default(true),
     console_logs: z.boolean().default(false),
-    network_requests: z.boolean().default(false)
+    network_requests: z.boolean().default(false),
+    // Enhanced fields
+    performance_metrics: z.boolean().default(false),
+    interaction_data: z.boolean().default(false),
+    error_context: z.boolean().default(false),
+    user_agent: z.boolean().default(false),
+    viewport: z.boolean().default(false),
+    attachments: z.boolean().default(false)
   }),
+  data_format: z.enum(['flattened', 'structured']).default('flattened'),
   template: z.enum(['default', 'jira', 'azure_devops']).default('default')
 })
 
@@ -99,13 +114,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const {
       format,
+      compression,
       report_ids,
       filters,
       include_fields,
+      data_format,
       template
     } = validation.data
 
-    // Build query based on filters or specific report IDs
+    // Build enhanced query based on filters or specific report IDs
     let query = supabaseAdmin
       .from('fl_reports')
       .select(`
@@ -120,7 +137,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         console_logs,
         network_requests,
         created_at,
-        updated_at
+        updated_at,
+        performance_metrics,
+        interaction_data,
+        error_context,
+        fl_attachments(
+          id,
+          filename,
+          file_size,
+          mime_type,
+          created_at
+        )
       `)
       .eq('project_id', projectId)
       .order('created_at', { ascending: false })
@@ -167,63 +194,35 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Process reports based on included fields
+    // Process reports based on included fields and data format
     const processedReports = reports.map((report: any) => {
-      const processedReport: any = {}
-
-      // Map fields based on template
-      const fieldMapping = getFieldMapping(template)
-
-      if (include_fields.title) {
-        processedReport[fieldMapping.title] = report.title
-      }
-      if (include_fields.description) {
-        processedReport[fieldMapping.description] = report.description
-      }
-      if (include_fields.type) {
-        processedReport[fieldMapping.type] = report.type
-      }
-      if (include_fields.priority) {
-        processedReport[fieldMapping.priority] = report.priority || 'none'
-      }
-      if (include_fields.reporter) {
-        processedReport[fieldMapping.reporter] = report.reporter_name || report.reporter_email || 'anonymous'
-      }
-      if (include_fields.url) {
-        processedReport[fieldMapping.url] = report.url || ''
-      }
-      if (include_fields.created_at) {
-        processedReport[fieldMapping.created_at] = new Date(report.created_at).toISOString()
-      }
-      if (include_fields.console_logs) {
-        processedReport[fieldMapping.console_logs] = JSON.stringify(report.console_logs || [])
-      }
-      if (include_fields.network_requests) {
-        processedReport[fieldMapping.network_requests] = JSON.stringify(report.network_requests || [])
-      }
-
-      return processedReport
+      return processReportData(report, include_fields, template, data_format)
     })
 
     // Generate export based on format
-    if (format === 'json') {
-      return NextResponse.json(processedReports, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Disposition': `attachment; filename="feedloop-reports-${new Date().toISOString().split('T')[0]}.json"`
-        }
-      })
-    } else {
-      // Generate CSV
-      const csv = generateCSV(processedReports)
-      const templateSuffix = template !== 'default' ? `-${template}` : ''
+    const timestamp = new Date().toISOString().split('T')[0]
+    const templateSuffix = template !== 'default' ? `-${template}` : ''
+    const baseFilename = `feedloop-reports${templateSuffix}-${timestamp}`
 
-      return new NextResponse(csv, {
-        headers: {
-          'Content-Type': 'text/csv',
-          'Content-Disposition': `attachment; filename="feedloop-reports${templateSuffix}-${new Date().toISOString().split('T')[0]}.csv"`
-        }
-      })
+    switch (format) {
+      case 'json': {
+        const content = JSON.stringify(processedReports, null, 2)
+        return await createResponse(content, 'application/json', `${baseFilename}.json`, compression)
+      }
+      case 'ndjson': {
+        const content = processedReports.map(report => JSON.stringify(report)).join('\n')
+        return await createResponse(content, 'application/x-ndjson', `${baseFilename}.ndjson`, compression)
+      }
+      case 'excel': {
+        const buffer = generateExcel(processedReports, template)
+        const content = Buffer.from(buffer).toString('base64')
+        return await createResponse(content, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', `${baseFilename}.xlsx`, compression, true)
+      }
+      case 'csv':
+      default: {
+        const content = generateCSV(processedReports)
+        return await createResponse(content, 'text/csv', `${baseFilename}.csv`, compression)
+      }
     }
 
   } catch (error) {
@@ -251,47 +250,235 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 }
 
 /**
- * Get field mapping based on export template
+ * Process report data based on included fields and data format
+ */
+function processReportData(report: any, includeFields: any, template: string, dataFormat: string) {
+  const fieldMapping = getFieldMapping(template)
+  const processedReport: any = {}
+
+  // Basic fields
+  if (includeFields.title) {
+    processedReport[fieldMapping.title] = report.title
+  }
+  if (includeFields.description) {
+    processedReport[fieldMapping.description] = report.description
+  }
+  if (includeFields.type) {
+    processedReport[fieldMapping.type] = report.type
+  }
+  if (includeFields.priority) {
+    processedReport[fieldMapping.priority] = report.priority || 'none'
+  }
+  if (includeFields.reporter) {
+    processedReport[fieldMapping.reporter] = report.reporter_name || report.reporter_email || 'anonymous'
+  }
+  if (includeFields.url) {
+    processedReport[fieldMapping.url] = report.url || ''
+  }
+  if (includeFields.created_at) {
+    processedReport[fieldMapping.created_at] = new Date(report.created_at).toISOString()
+  }
+  if (includeFields.user_agent) {
+    processedReport[fieldMapping.user_agent] = '' // User agent not available in current schema
+  }
+  if (includeFields.viewport) {
+    processedReport[fieldMapping.viewport] = '' // Viewport not available in current schema
+  }
+
+  // Enhanced diagnostic fields
+  if (includeFields.console_logs) {
+    processedReport[fieldMapping.console_logs] = formatDiagnosticData(report.console_logs, dataFormat)
+  }
+  if (includeFields.network_requests) {
+    processedReport[fieldMapping.network_requests] = formatDiagnosticData(report.network_requests, dataFormat)
+  }
+  if (includeFields.performance_metrics) {
+    processedReport[fieldMapping.performance_metrics] = formatPerformanceData(report.performance_metrics, dataFormat)
+  }
+  if (includeFields.interaction_data) {
+    processedReport[fieldMapping.interaction_data] = formatDiagnosticData(report.interaction_data, dataFormat)
+  }
+  if (includeFields.error_context) {
+    processedReport[fieldMapping.error_context] = formatDiagnosticData(report.error_context, dataFormat)
+  }
+  if (includeFields.attachments) {
+    processedReport[fieldMapping.attachments] = formatAttachments(report.fl_attachments, dataFormat)
+  }
+
+  return processedReport
+}
+
+/**
+ * Get enhanced field mapping based on export template
  */
 function getFieldMapping(template: string) {
+  const baseMapping = {
+    title: 'Title',
+    description: 'Description',
+    type: 'Type',
+    priority: 'Priority',
+    reporter: 'Reporter',
+    url: 'URL',
+    created_at: 'Created At',
+    user_agent: 'User Agent',
+    viewport: 'Viewport',
+    console_logs: 'Console Logs',
+    network_requests: 'Network Requests',
+    performance_metrics: 'Performance Metrics',
+    interaction_data: 'Interaction Data',
+    error_context: 'Error Context',
+    attachments: 'Attachments'
+  }
+
   switch (template) {
     case 'jira':
       return {
+        ...baseMapping,
         title: 'Summary',
-        description: 'Description',
         type: 'Issue Type',
-        priority: 'Priority',
-        reporter: 'Reporter',
-        url: 'URL',
         created_at: 'Created',
-        console_logs: 'Console Logs',
-        network_requests: 'Network Requests'
+        performance_metrics: 'Performance Data',
+        error_context: 'Error Details'
       }
     case 'azure_devops':
       return {
-        title: 'Title',
-        description: 'Description',
+        ...baseMapping,
         type: 'Work Item Type',
-        priority: 'Priority',
         reporter: 'Assigned To',
-        url: 'URL',
         created_at: 'Created Date',
-        console_logs: 'Console Logs',
-        network_requests: 'Network Requests'
+        performance_metrics: 'Performance Data',
+        error_context: 'Error Details'
       }
     default:
-      return {
-        title: 'Title',
-        description: 'Description',
-        type: 'Type',
-        priority: 'Priority',
-        reporter: 'Reporter',
-        url: 'URL',
-        created_at: 'Created At',
-        console_logs: 'Console Logs',
-        network_requests: 'Network Requests'
-      }
+      return baseMapping
   }
+}
+
+/**
+ * Format diagnostic data based on data format preference
+ */
+function formatDiagnosticData(data: any, dataFormat: string): string {
+  if (!data) return ''
+
+  if (dataFormat === 'structured') {
+    return JSON.stringify(data, null, 2)
+  } else {
+    // Flattened format - create summary
+    if (Array.isArray(data)) {
+      return `${data.length} items`
+    }
+    return JSON.stringify(data)
+  }
+}
+
+/**
+ * Format performance data with metrics summary
+ */
+function formatPerformanceData(data: any, dataFormat: string): string {
+  if (!data) return ''
+
+  if (dataFormat === 'structured') {
+    return JSON.stringify(data, null, 2)
+  } else {
+    // Flattened format - create performance summary
+    const webVitals = data.web_vitals || {}
+    const summary = [
+      webVitals.lcp ? `LCP: ${webVitals.lcp}ms` : '',
+      webVitals.fid ? `FID: ${webVitals.fid}ms` : '',
+      webVitals.cls ? `CLS: ${webVitals.cls}` : '',
+      webVitals.fcp ? `FCP: ${webVitals.fcp}ms` : ''
+    ].filter(Boolean).join(', ')
+
+    return summary || 'No metrics available'
+  }
+}
+
+/**
+ * Format viewport information
+ */
+function formatViewport(viewport: any): string {
+  if (!viewport) return ''
+  return `${viewport.width}x${viewport.height}`
+}
+
+/**
+ * Format attachments information
+ */
+function formatAttachments(attachments: any[], dataFormat: string): string {
+  if (!attachments || attachments.length === 0) return ''
+
+  if (dataFormat === 'structured') {
+    return JSON.stringify(attachments, null, 2)
+  } else {
+    return attachments.map(att => att.filename || 'Unnamed file').join(', ')
+  }
+}
+
+/**
+ * Create response with optional compression
+ */
+async function createResponse(
+  content: string,
+  contentType: string,
+  filename: string,
+  compress: boolean,
+  isBase64: boolean = false
+): Promise<NextResponse> {
+  let responseContent: string | Buffer = content
+  let headers: Record<string, string> = {
+    'Content-Type': contentType,
+    'Content-Disposition': `attachment; filename="${filename}"`
+  }
+
+  if (compress && !isBase64) {
+    try {
+      const compressed = await gzipAsync(Buffer.from(content))
+      responseContent = compressed
+      headers['Content-Encoding'] = 'gzip'
+      headers['Content-Type'] = contentType
+    } catch (error) {
+      console.warn('Compression failed, serving uncompressed:', error)
+    }
+  }
+
+  if (isBase64) {
+    responseContent = Buffer.from(content, 'base64')
+  }
+
+  return new NextResponse(responseContent, { headers })
+}
+
+/**
+ * Generate Excel file from processed reports
+ */
+function generateExcel(reports: any[], template: string): ArrayBuffer {
+  if (reports.length === 0) {
+    // Create empty workbook
+    const wb = utils.book_new()
+    const ws = utils.aoa_to_sheet([['No data available']])
+    utils.book_append_sheet(wb, ws, 'Reports')
+    return utils.write(wb, { type: 'array', bookType: 'xlsx' })
+  }
+
+  // Create workbook and worksheet
+  const wb = utils.book_new()
+  const ws = utils.json_to_sheet(reports)
+
+  // Set column widths
+  const colWidths = Object.keys(reports[0]).map(key => {
+    const maxLength = Math.max(
+      key.length,
+      ...reports.map(row => String(row[key] || '').length)
+    )
+    return { wch: Math.min(maxLength + 2, 50) }
+  })
+  ws['!cols'] = colWidths
+
+  // Add worksheet to workbook
+  const sheetName = template === 'default' ? 'Reports' : `Reports-${template}`
+  utils.book_append_sheet(wb, ws, sheetName)
+
+  return utils.write(wb, { type: 'array', bookType: 'xlsx' })
 }
 
 /**

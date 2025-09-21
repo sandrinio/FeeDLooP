@@ -4,6 +4,11 @@
  */
 
 import { z } from 'zod'
+import {
+  PerformanceMetricsSchema,
+  InteractionDataSchema,
+  ErrorContextSchema
+} from '@/lib/types/diagnostics'
 
 // Report Type Enum
 export const ReportTypeSchema = z.enum(['bug', 'initiative', 'feedback'])
@@ -159,6 +164,19 @@ export const CreateWidgetReportSchema = z.object({
     .optional()
     .nullable(),
 
+  // Enhanced diagnostic data from v2.0.0+ widget
+  performance_metrics: PerformanceMetricsSchema
+    .optional()
+    .nullable(),
+
+  interaction_data: InteractionDataSchema
+    .optional()
+    .nullable(),
+
+  error_context: ErrorContextSchema
+    .optional()
+    .nullable(),
+
   attachments: z.array(AttachmentReferenceSchema)
     .max(5, 'Maximum 5 attachments per report')
     .optional()
@@ -255,6 +273,19 @@ export const ReportSchema = z.object({
     .optional(),
 
   diagnostic_data: DiagnosticDataSchema
+    .nullable()
+    .optional(),
+
+  // Enhanced diagnostic data from v2.0.0+ widget
+  performance_metrics: PerformanceMetricsSchema
+    .nullable()
+    .optional(),
+
+  interaction_data: InteractionDataSchema
+    .nullable()
+    .optional(),
+
+  error_context: ErrorContextSchema
     .nullable()
     .optional(),
 
@@ -488,6 +519,9 @@ export const mapReportToDatabase = (report: Partial<Report>) => {
     priority: report.priority,
     user_info: report.user_info ? JSON.stringify(report.user_info) : null,
     diagnostic_data: report.diagnostic_data ? JSON.stringify(report.diagnostic_data) : null,
+    performance_metrics: report.performance_metrics ? JSON.stringify(report.performance_metrics) : null,
+    interaction_data: report.interaction_data ? JSON.stringify(report.interaction_data) : null,
+    error_context: report.error_context ? JSON.stringify(report.error_context) : null,
     internal_notes: report.internal_notes,
     resolution_notes: report.resolution_notes,
     assigned_to: report.assigned_to,
@@ -509,6 +543,9 @@ export const mapDatabaseToReport = (dbReport: any): Report => {
     priority: dbReport.priority,
     user_info: dbReport.user_info ? JSON.parse(dbReport.user_info) : null,
     diagnostic_data: dbReport.diagnostic_data ? JSON.parse(dbReport.diagnostic_data) : null,
+    performance_metrics: dbReport.performance_metrics ? JSON.parse(dbReport.performance_metrics) : null,
+    interaction_data: dbReport.interaction_data ? JSON.parse(dbReport.interaction_data) : null,
+    error_context: dbReport.error_context ? JSON.parse(dbReport.error_context) : null,
     internal_notes: dbReport.internal_notes,
     resolution_notes: dbReport.resolution_notes,
     assigned_to: dbReport.assigned_to,

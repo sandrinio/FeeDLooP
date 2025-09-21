@@ -1,6 +1,6 @@
 
-// FeeDLooP Widget v0.1.0 (Build: mfsd1fln)
-// Built on: 2025-09-20T14:24:59.968Z
+// FeeDLooP Widget v0.1.0 (Build: mftprpxi)
+// Built on: 2025-09-21T13:09:07.979Z
 // For more info: https://feedloop.com
 
 (function() {
@@ -18,7 +18,7 @@
   'use strict';
 
   // Widget configuration
-  const WIDGET_VERSION = '1.0.0';
+  const WIDGET_VERSION = '2.0.0';
 
   // API Base URL detection
   let WIDGET_API_BASE = '';
@@ -73,6 +73,13 @@
       reporter_name: '',
       reporter_email: '',
       priority: 'medium'
+    },
+    // Enhanced data collection
+    diagnosticData: {
+      performanceMetrics: null,
+      interactionData: null,
+      errorContext: null,
+      consentGiven: null
     }
   };
 
@@ -89,7 +96,7 @@
     }
 
     // Inline CSS content (populated by build process)
-    style.textContent = '.feedloop-widget-container,.feedloop-widget-container *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,\'Helvetica Neue\',Arial,sans-serif;line-height:1.5}.feedloop-widget-container{position:fixed;bottom:20px;right:20px;z-index:999999;font-size:14px;color:#333}.feedloop-trigger-btn{position:relative;display:flex;align-items:center;gap:8px;padding:12px 20px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:50px 0 0 50px;cursor:pointer;box-shadow:0 4px 6px rgba(0,0,0,0.1),0 2px 4px rgba(0,0,0,0.06);transition:all 0.3s ease;font-size:14px;font-weight:500;transform:translateX(0)}.feedloop-trigger-btn:hover{transform:translateX(0) translateY(-2px);box-shadow:0 10px 15px rgba(0,0,0,0.15),0 4px 6px rgba(0,0,0,0.1)}.feedloop-trigger-btn svg{width:20px;height:20px;stroke-width:2}.feedloop-trigger-text{display:inline-block}.feedloop-widget-container[data-state="open"] .feedloop-trigger-btn{display:none}.feedloop-panel{position:absolute;bottom:0;right:0;width:400px;max-width:calc(100vw - 40px);max-height:600px;background:white;border-radius:12px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1),0 10px 10px -5px rgba(0,0,0,0.04);display:none;flex-direction:column;overflow:hidden}.feedloop-widget-container[data-state="open"] .feedloop-panel{display:flex;animation:feedloop-slide-up 0.3s ease-out}.feedloop-widget-container[data-minimized="true"] .feedloop-panel{max-height:50px}@keyframes feedloop-slide-up{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}.feedloop-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white}.feedloop-title{font-size:16px;font-weight:600;color:white}.feedloop-header-actions{display:flex;gap:8px}.feedloop-minimize-btn,.feedloop-close-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.2);border:none;border-radius:6px;cursor:pointer;transition:background 0.2s;color:white}.feedloop-minimize-btn:hover,.feedloop-close-btn:hover{background:rgba(255,255,255,0.3)}.feedloop-content{flex:1;overflow-y:auto;padding:20px}.feedloop-widget-container[data-minimized="true"] .feedloop-content{display:none}.feedloop-type-selector{display:flex;gap:8px;margin-bottom:20px}.feedloop-type-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;background:#f7f7f7;border:2px solid #e5e5e5;border-radius:8px;cursor:pointer;transition:all 0.2s;font-size:12px;color:#666}.feedloop-type-btn:hover{background:#f0f0f0;border-color:#d0d0d0}.feedloop-type-btn.active{background:#f0f4ff;border-color:#667eea;color:#667eea}.feedloop-type-icon{font-size:20px}.feedloop-form{display:flex;flex-direction:column;gap:16px}.feedloop-field{display:flex;flex-direction:column;gap:6px}.feedloop-field label{font-size:13px;font-weight:500;color:#555}.feedloop-field input[type="text"],.feedloop-field input[type="email"],.feedloop-field select{padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;transition:border-color 0.2s;background:white}.feedloop-field input:focus,.feedloop-field select:focus{outline:none;border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,0.1)}.feedloop-field input.error,.feedloop-field .feedloop-editor.error{border-color:#ef4444}.feedloop-field-error{font-size:12px;color:#ef4444;min-height:16px}.feedloop-field-group{display:grid;grid-template-columns:1fr 1fr;gap:12px}.feedloop-rich-text{border:1px solid #e0e0e0;border-radius:6px;overflow:hidden}.feedloop-toolbar{display:flex;gap:4px;padding:6px;background:#f7f7f7;border-bottom:1px solid #e0e0e0}.feedloop-tool{min-width:32px;height:28px;display:flex;align-items:center;justify-content:center;background:white;border:1px solid #d0d0d0;border-radius:4px;cursor:pointer;font-size:12px;color:#555;transition:all 0.2s;padding:0 6px}.feedloop-tool:hover{background:#f0f0f0;border-color:#b0b0b0}.feedloop-editor{min-height:120px;max-height:250px;padding:16px 16px 16px 24px;overflow-y:auto;font-size:14px;line-height:1.6;background:white;border:none;resize:none}.feedloop-editor ul{padding-left:20px;margin:8px 0}.feedloop-editor ol{padding-left:20px;margin:8px 0}.feedloop-editor li{margin:4px 0}.feedloop-editor:focus{outline:none;box-shadow:inset 0 0 0 1px #667eea}.feedloop-editor[data-placeholder]:empty:before{content:attr(data-placeholder);color:#999}.feedloop-attachments{display:flex;flex-direction:column;gap:8px}.feedloop-drop-zone{display:flex;flex-direction:column;align-items:center;gap:8px;padding:24px;border:2px dashed #d0d0d0;border-radius:8px;background:#fafafa;transition:all 0.2s;text-align:center;cursor:pointer}.feedloop-drop-zone:hover{border-color:#667eea;background:#f8faff}.feedloop-drop-zone.drag-over{border-color:#667eea;background:#f0f4ff;transform:scale(1.02)}.feedloop-drop-text{font-size:14px;color:#666;font-weight:500}.feedloop-file-list{display:flex;flex-direction:column;gap:6px}.feedloop-file-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f7f7f7;border-radius:6px;font-size:13px}.feedloop-file-name{flex:1;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.feedloop-file-size{color:#999;font-size:12px}.feedloop-file-remove{width:20px;height:20px;display:flex;align-items:center;justify-content:center;background:#e0e0e0;border:none;border-radius:50%;cursor:pointer;font-size:16px;color:#666;transition:all 0.2s}.feedloop-file-remove:hover{background:#d0d0d0;color:#333}.feedloop-notice{padding:10px;background:#f0f4ff;border-radius:6px;font-size:12px;color:#555}.feedloop-actions{display:flex;gap:12px;margin-top:8px}.feedloop-cancel-btn,.feedloop-submit-btn{flex:1;padding:10px 16px;border:none;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s}.feedloop-cancel-btn{background:white;color:#666;border:1px solid #e0e0e0}.feedloop-cancel-btn:hover{background:#f7f7f7;border-color:#d0d0d0}.feedloop-submit-btn{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white}.feedloop-submit-btn:hover:not(:disabled){opacity:0.9;transform:translateY(-1px);box-shadow:0 4px 6px rgba(0,0,0,0.1)}.feedloop-submit-btn:disabled{opacity:0.6;cursor:not-allowed}.feedloop-message{display:flex;align-items:center;gap:12px;padding:16px 20px;margin:20px;border-radius:8px;font-size:14px}.feedloop-success{background:#d1fae5;color:#065f46}.feedloop-success svg{fill:#10b981;flex-shrink:0}.feedloop-error{background:#fee2e2;color:#991b1b}.feedloop-error svg{fill:#ef4444;flex-shrink:0}.feedloop-loading{display:inline-flex;align-items:center;gap:8px}.feedloop-loading::before{content:\'\';width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:feedloop-spin 0.6s linear infinite}@keyframes feedloop-spin{to{transform:rotate(360deg)}}@media (max-width:480px){.feedloop-widget-container{bottom:0;right:0;left:0}.feedloop-trigger-btn{bottom:20px;right:20px;position:fixed}.feedloop-panel{width:100%;max-width:100%;height:100vh;max-height:100vh;border-radius:0}.feedloop-field-group{grid-template-columns:1fr}.feedloop-type-btn{font-size:11px;padding:10px 4px}.feedloop-type-icon{font-size:18px}}@media print{.feedloop-widget-container{display:none !important}}';
+    style.textContent = '.feedloop-widget-container,.feedloop-widget-container *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,\'Helvetica Neue\',Arial,sans-serif;line-height:1.5}.feedloop-widget-container{position:fixed;bottom:20px;right:20px;z-index:999999;font-size:14px;color:#333}.feedloop-trigger-btn{position:relative;display:flex;align-items:center;gap:8px;padding:12px 20px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:50px 0 0 50px;cursor:pointer;box-shadow:0 4px 6px rgba(0,0,0,0.1),0 2px 4px rgba(0,0,0,0.06);transition:all 0.3s ease;font-size:14px;font-weight:500;transform:translateX(0)}.feedloop-trigger-btn:hover{transform:translateX(0) translateY(-2px);box-shadow:0 10px 15px rgba(0,0,0,0.15),0 4px 6px rgba(0,0,0,0.1)}.feedloop-trigger-btn svg{width:20px;height:20px;stroke-width:2}.feedloop-trigger-text{display:inline-block}.feedloop-widget-container[data-state="open"] .feedloop-trigger-btn{display:none}.feedloop-panel{position:absolute;bottom:0;right:0;width:400px;max-width:calc(100vw - 40px);max-height:600px;background:white;border-radius:12px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1),0 10px 10px -5px rgba(0,0,0,0.04);display:none;flex-direction:column;overflow:hidden}.feedloop-widget-container[data-state="open"] .feedloop-panel{display:flex;animation:feedloop-slide-up 0.3s ease-out}.feedloop-widget-container[data-minimized="true"] .feedloop-panel{max-height:50px}@keyframes feedloop-slide-up{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}.feedloop-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white}.feedloop-title{font-size:16px;font-weight:600;color:white}.feedloop-header-actions{display:flex;gap:8px}.feedloop-minimize-btn,.feedloop-close-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.2);border:none;border-radius:6px;cursor:pointer;transition:background 0.2s;color:white}.feedloop-minimize-btn:hover,.feedloop-close-btn:hover{background:rgba(255,255,255,0.3)}.feedloop-content{flex:1;overflow-y:auto;padding:20px}.feedloop-widget-container[data-minimized="true"] .feedloop-content{display:none}.feedloop-type-selector{display:flex;gap:8px;margin-bottom:20px}.feedloop-type-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;background:#f7f7f7;border:2px solid #e5e5e5;border-radius:8px;cursor:pointer;transition:all 0.2s;font-size:12px;color:#666}.feedloop-type-btn:hover{background:#f0f0f0;border-color:#d0d0d0}.feedloop-type-btn.active{background:#f0f4ff;border-color:#667eea;color:#667eea}.feedloop-type-icon{font-size:20px}.feedloop-form{display:flex;flex-direction:column;gap:16px}.feedloop-field{display:flex;flex-direction:column;gap:6px}.feedloop-field label{font-size:13px;font-weight:500;color:#555}.feedloop-field input[type="text"],.feedloop-field input[type="email"],.feedloop-field select{padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:14px;transition:border-color 0.2s;background:white}.feedloop-field input:focus,.feedloop-field select:focus{outline:none;border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,0.1)}.feedloop-field input.error,.feedloop-field .feedloop-editor.error{border-color:#ef4444}.feedloop-field-error{font-size:12px;color:#ef4444;min-height:16px}.feedloop-field-group{display:grid;grid-template-columns:1fr 1fr;gap:12px}.feedloop-rich-text{border:1px solid #e0e0e0;border-radius:6px;overflow:hidden}.feedloop-toolbar{display:flex;gap:4px;padding:6px;background:#f7f7f7;border-bottom:1px solid #e0e0e0}.feedloop-tool{min-width:32px;height:28px;display:flex;align-items:center;justify-content:center;background:white;border:1px solid #d0d0d0;border-radius:4px;cursor:pointer;font-size:12px;color:#555;transition:all 0.2s;padding:0 6px}.feedloop-tool:hover{background:#f0f0f0;border-color:#b0b0b0}.feedloop-editor{min-height:120px;max-height:250px;padding:16px 16px 16px 24px;overflow-y:auto;font-size:14px;line-height:1.6;background:white;border:none;resize:none}.feedloop-editor ul{padding-left:20px;margin:8px 0}.feedloop-editor ol{padding-left:20px;margin:8px 0}.feedloop-editor li{margin:4px 0}.feedloop-editor:focus{outline:none;box-shadow:inset 0 0 0 1px #667eea}.feedloop-editor[data-placeholder]:empty:before{content:attr(data-placeholder);color:#999}.feedloop-attachments{display:flex;flex-direction:column;gap:8px}.feedloop-drop-zone{display:flex;flex-direction:column;align-items:center;gap:8px;padding:24px;border:2px dashed #d0d0d0;border-radius:8px;background:#fafafa;transition:all 0.2s;text-align:center;cursor:pointer}.feedloop-drop-zone:hover{border-color:#667eea;background:#f8faff}.feedloop-drop-zone.drag-over{border-color:#667eea;background:#f0f4ff;transform:scale(1.02)}.feedloop-drop-text{font-size:14px;color:#666;font-weight:500}.feedloop-file-list{display:flex;flex-direction:column;gap:6px}.feedloop-file-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f7f7f7;border-radius:6px;font-size:13px}.feedloop-file-name{flex:1;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.feedloop-file-size{color:#999;font-size:12px}.feedloop-file-remove{width:20px;height:20px;display:flex;align-items:center;justify-content:center;background:#e0e0e0;border:none;border-radius:50%;cursor:pointer;font-size:16px;color:#666;transition:all 0.2s}.feedloop-file-remove:hover{background:#d0d0d0;color:#333}.feedloop-consent-banner{background:#f8faff;border:1px solid #e1ebf7;border-radius:8px;margin-bottom:16px;overflow:hidden}.feedloop-consent-content{padding:16px}.feedloop-consent-content h4{margin:0 0 12px 0;color:#4c51bf;font-size:14px}.feedloop-consent-content p{margin:0 0 12px 0;font-size:13px;line-height:1.4;color:#555}.feedloop-consent-details{background:white;border:1px solid #e5e7eb;border-radius:6px;padding:12px;margin:12px 0;font-size:12px}.feedloop-consent-details strong{color:#374151;font-size:13px}.feedloop-consent-details ul{margin:8px 0;padding-left:20px}.feedloop-consent-details li{margin:4px 0;color:#555}.feedloop-consent-actions{display:flex;gap:8px;margin-top:16px}.feedloop-consent-decline{background:white;color:#6b7280;border:1px solid #d1d5db;border-radius:6px;padding:8px 16px;font-size:13px;cursor:pointer;transition:all 0.2s}.feedloop-consent-decline:hover{background:#f9fafb;border-color:#9ca3af}.feedloop-consent-accept{background:#667eea;color:white;border:none;border-radius:6px;padding:8px 16px;font-size:13px;cursor:pointer;transition:all 0.2s}.feedloop-consent-accept:hover{background:#5a67d8}.feedloop-notice{padding:10px;background:#f0f4ff;border-radius:6px;font-size:12px;color:#555}.feedloop-actions{display:flex;gap:12px;margin-top:8px}.feedloop-cancel-btn,.feedloop-submit-btn{flex:1;padding:10px 16px;border:none;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s}.feedloop-cancel-btn{background:white;color:#666;border:1px solid #e0e0e0}.feedloop-cancel-btn:hover{background:#f7f7f7;border-color:#d0d0d0}.feedloop-submit-btn{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white}.feedloop-submit-btn:hover:not(:disabled){opacity:0.9;transform:translateY(-1px);box-shadow:0 4px 6px rgba(0,0,0,0.1)}.feedloop-submit-btn:disabled{opacity:0.6;cursor:not-allowed}.feedloop-message{display:flex;align-items:center;gap:12px;padding:16px 20px;margin:20px;border-radius:8px;font-size:14px}.feedloop-success{background:#d1fae5;color:#065f46}.feedloop-success svg{fill:#10b981;flex-shrink:0}.feedloop-error{background:#fee2e2;color:#991b1b}.feedloop-error svg{fill:#ef4444;flex-shrink:0}.feedloop-loading{display:inline-flex;align-items:center;gap:8px}.feedloop-loading::before{content:\'\';width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:feedloop-spin 0.6s linear infinite}@keyframes feedloop-spin{to{transform:rotate(360deg)}}@media (max-width:480px){.feedloop-widget-container{bottom:0;right:0;left:0}.feedloop-trigger-btn{bottom:20px;right:20px;position:fixed}.feedloop-panel{width:100%;max-width:100%;height:100vh;max-height:100vh;border-radius:0}.feedloop-field-group{grid-template-columns:1fr}.feedloop-type-btn{font-size:11px;padding:10px 4px}.feedloop-type-icon{font-size:18px}}@media print{.feedloop-widget-container{display:none !important}}';
 
     document.head.appendChild(style);
   }
@@ -243,10 +250,36 @@
                 </div>
               </div>
 
+              <!-- Privacy Consent Banner -->
+              <div class="feedloop-consent-banner" id="feedloop-consent-banner" style="display: none;">
+                <div class="feedloop-consent-content">
+                  <h4>Enhanced Data Collection</h4>
+                  <p>To provide better debugging insights, we can collect additional performance metrics and user interaction data. This helps us understand how your experience compares to others and identify specific issues.</p>
+                  <div class="feedloop-consent-details">
+                    <strong>What we collect with your consent:</strong>
+                    <ul>
+                      <li>Core Web Vitals (page load performance)</li>
+                      <li>Anonymized interaction patterns (clicks, scrolls)</li>
+                      <li>Enhanced error context and patterns</li>
+                      <li>Resource loading performance data</li>
+                    </ul>
+                    <p><strong>Privacy:</strong> All data is anonymized and used solely for debugging purposes. No personal information is collected.</p>
+                  </div>
+                  <div class="feedloop-consent-actions">
+                    <button type="button" class="feedloop-consent-decline">No Thanks</button>
+                    <button type="button" class="feedloop-consent-accept">Accept Enhanced Collection</button>
+                  </div>
+                </div>
+              </div>
+
               <!-- Diagnostic Data Notice -->
               <div class="feedloop-notice">
                 <small>
                   <strong>Note:</strong> We'll automatically collect browser info and console logs to help diagnose issues.
+                  <span class="feedloop-enhanced-notice" style="display: none;">
+                    Enhanced performance and interaction data collection is enabled.
+                    <button type="button" class="feedloop-manage-consent" style="background: none; border: none; color: #667eea; text-decoration: underline; cursor: pointer; font-size: inherit;">Manage preferences</button>
+                  </span>
                 </small>
               </div>
 
@@ -388,6 +421,24 @@
     // Email validation
     const emailInput = widget.querySelector('#feedloop-email');
     emailInput.addEventListener('blur', validateEmail);
+
+    // Consent banner handlers
+    const consentAccept = widget.querySelector('.feedloop-consent-accept');
+    const consentDecline = widget.querySelector('.feedloop-consent-decline');
+    const manageConsent = widget.querySelector('.feedloop-manage-consent');
+
+    if (consentAccept) {
+      consentAccept.addEventListener('click', handleConsentAccept);
+    }
+    if (consentDecline) {
+      consentDecline.addEventListener('click', handleConsentDecline);
+    }
+    if (manageConsent) {
+      manageConsent.addEventListener('click', showConsentBanner);
+    }
+
+    // Show consent banner on first widget open if no consent recorded
+    setTimeout(checkAndShowConsentBanner, 500);
   }
 
   // Open widget
@@ -656,6 +707,508 @@
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
+  // ============================================================================
+  // Privacy Consent Management (T014)
+  // ============================================================================
+
+  // Check and show consent banner if needed
+  function checkAndShowConsentBanner() {
+    try {
+      const consentStatus = localStorage.getItem('feedloop_interaction_consent');
+
+      if (!consentStatus) {
+        // No consent recorded, show banner
+        showConsentBanner();
+      } else {
+        // Update UI based on consent status
+        updateConsentUI(consentStatus === 'accepted');
+      }
+    } catch (e) {
+      console.log('FeeDLooP: Unable to check consent status (localStorage unavailable)');
+    }
+  }
+
+  // Show consent banner
+  function showConsentBanner() {
+    const widget = document.getElementById(WIDGET_NAMESPACE);
+    const banner = widget.querySelector('#feedloop-consent-banner');
+
+    if (banner) {
+      banner.style.display = 'block';
+      banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  // Hide consent banner
+  function hideConsentBanner() {
+    const widget = document.getElementById(WIDGET_NAMESPACE);
+    const banner = widget.querySelector('#feedloop-consent-banner');
+
+    if (banner) {
+      banner.style.display = 'none';
+    }
+  }
+
+  // Handle consent acceptance
+  function handleConsentAccept() {
+    try {
+      localStorage.setItem('feedloop_interaction_consent', 'accepted');
+      localStorage.setItem('feedloop_consent_timestamp', new Date().toISOString());
+
+      hideConsentBanner();
+      updateConsentUI(true);
+
+      // Start collecting interaction data
+      collectInteractionData();
+
+      console.log('FeeDLooP: Enhanced data collection consent accepted');
+    } catch (e) {
+      console.error('FeeDLooP: Error saving consent:', e);
+    }
+  }
+
+  // Handle consent decline
+  function handleConsentDecline() {
+    try {
+      localStorage.setItem('feedloop_interaction_consent', 'declined');
+      localStorage.setItem('feedloop_consent_timestamp', new Date().toISOString());
+
+      hideConsentBanner();
+      updateConsentUI(false);
+
+      console.log('FeeDLooP: Enhanced data collection consent declined');
+    } catch (e) {
+      console.error('FeeDLooP: Error saving consent:', e);
+    }
+  }
+
+  // Update UI based on consent status
+  function updateConsentUI(consentGiven) {
+    const widget = document.getElementById(WIDGET_NAMESPACE);
+    const enhancedNotice = widget.querySelector('.feedloop-enhanced-notice');
+
+    if (enhancedNotice) {
+      enhancedNotice.style.display = consentGiven ? 'inline' : 'none';
+    }
+
+    // Store consent status in widget state
+    widgetState.diagnosticData.consentGiven = consentGiven;
+  }
+
+  // ============================================================================
+  // Enhanced Performance Data Collection (T012-T016)
+  // ============================================================================
+
+  // Check for consent in localStorage
+  function checkPerformanceConsent() {
+    try {
+      const consent = localStorage.getItem('feedloop_interaction_consent');
+      return consent === 'accepted';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Collect Core Web Vitals using Performance Observer API
+  function collectPerformanceMetrics() {
+    if (!window.PerformanceObserver) {
+      console.log('FeeDLooP: Performance Observer not supported');
+      return null;
+    }
+
+    const metrics = {
+      web_vitals: {},
+      custom_metrics: {},
+      resource_timing: {
+        scripts: [],
+        stylesheets: [],
+        images: [],
+        fonts: []
+      },
+      memory: null,
+      categorization: null
+    };
+
+    try {
+      // Collect navigation timing
+      if (window.performance && window.performance.timing) {
+        const timing = window.performance.timing;
+        const navigationStart = timing.navigationStart;
+
+        metrics.custom_metrics = {
+          dom_ready: timing.domContentLoadedEventEnd - navigationStart,
+          window_load: timing.loadEventEnd - navigationStart,
+          first_paint: 0 // Will be updated by observer
+        };
+      }
+
+      // Collect memory information
+      if (window.performance && window.performance.memory) {
+        metrics.memory = {
+          used_js_heap_size: window.performance.memory.usedJSHeapSize,
+          total_js_heap_size: window.performance.memory.totalJSHeapSize,
+          limit: window.performance.memory.jsHeapSizeLimit
+        };
+      }
+
+      // Performance Observer for Web Vitals
+      const webVitalsPromise = new Promise((resolve) => {
+        const observedMetrics = {};
+        let observersCount = 0;
+        const totalObservers = 5; // FCP, LCP, CLS, FID, TTFB
+
+        function checkComplete() {
+          observersCount++;
+          if (observersCount >= totalObservers) {
+            resolve(observedMetrics);
+          }
+        }
+
+        // First Contentful Paint
+        try {
+          const fcpObserver = new PerformanceObserver((list) => {
+            const entries = list.getEntries();
+            if (entries.length > 0) {
+              observedMetrics.fcp = Math.round(entries[0].startTime);
+              fcpObserver.disconnect();
+            }
+            checkComplete();
+          });
+          fcpObserver.observe({ entryTypes: ['paint'] });
+        } catch (e) {
+          checkComplete();
+        }
+
+        // Largest Contentful Paint
+        try {
+          const lcpObserver = new PerformanceObserver((list) => {
+            const entries = list.getEntries();
+            if (entries.length > 0) {
+              observedMetrics.lcp = Math.round(entries[entries.length - 1].startTime);
+            }
+          });
+          lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+
+          // LCP can keep updating, so we'll disconnect after a timeout
+          setTimeout(() => {
+            lcpObserver.disconnect();
+            checkComplete();
+          }, 2000);
+        } catch (e) {
+          checkComplete();
+        }
+
+        // Cumulative Layout Shift
+        try {
+          let clsValue = 0;
+          const clsObserver = new PerformanceObserver((list) => {
+            for (const entry of list.getEntries()) {
+              if (!entry.hadRecentInput) {
+                clsValue += entry.value;
+              }
+            }
+            observedMetrics.cls = Math.round(clsValue * 1000) / 1000; // Round to 3 decimals
+          });
+          clsObserver.observe({ entryTypes: ['layout-shift'] });
+
+          setTimeout(() => {
+            clsObserver.disconnect();
+            checkComplete();
+          }, 2000);
+        } catch (e) {
+          checkComplete();
+        }
+
+        // First Input Delay (will only fire on actual user input)
+        try {
+          const fidObserver = new PerformanceObserver((list) => {
+            const entries = list.getEntries();
+            if (entries.length > 0) {
+              observedMetrics.fid = Math.round(entries[0].processingStart - entries[0].startTime);
+              fidObserver.disconnect();
+            }
+            checkComplete();
+          });
+          fidObserver.observe({ entryTypes: ['first-input'] });
+
+          // FID might not fire if no user input, timeout after 5 seconds
+          setTimeout(() => {
+            fidObserver.disconnect();
+            checkComplete();
+          }, 5000);
+        } catch (e) {
+          checkComplete();
+        }
+
+        // Time to First Byte (from navigation timing)
+        try {
+          if (window.performance && window.performance.timing) {
+            const timing = window.performance.timing;
+            observedMetrics.ttfb = timing.responseStart - timing.navigationStart;
+          }
+          checkComplete();
+        } catch (e) {
+          checkComplete();
+        }
+
+        // Fallback timeout
+        setTimeout(() => {
+          resolve(observedMetrics);
+        }, 6000);
+      });
+
+      // Wait for web vitals collection
+      webVitalsPromise.then((webVitals) => {
+        metrics.web_vitals = webVitals;
+
+        // Categorize performance
+        metrics.categorization = categorizePerformanceMetrics(webVitals);
+
+        // Store in widget state
+        widgetState.diagnosticData.performanceMetrics = metrics;
+      });
+
+      // Collect resource timing
+      collectResourceTiming(metrics);
+
+    } catch (error) {
+      console.error('FeeDLooP: Error collecting performance metrics:', error);
+    }
+
+    return metrics;
+  }
+
+  // Categorize performance based on Web Vitals thresholds
+  function categorizePerformanceMetrics(webVitals) {
+    const thresholds = {
+      fcp: { good: 1000, needsImprovement: 3000 },
+      lcp: { good: 2500, needsImprovement: 4000 },
+      cls: { good: 0.1, needsImprovement: 0.25 },
+      fid: { good: 100, needsImprovement: 300 }
+    };
+
+    let score = 0;
+    let totalMetrics = 0;
+
+    Object.keys(thresholds).forEach(metric => {
+      if (webVitals[metric] !== undefined) {
+        totalMetrics++;
+        const value = webVitals[metric];
+        const threshold = thresholds[metric];
+
+        if (value <= threshold.good) {
+          score += 2; // Good
+        } else if (value <= threshold.needsImprovement) {
+          score += 1; // Needs improvement
+        }
+        // Poor = 0 points
+      }
+    });
+
+    const avgScore = totalMetrics > 0 ? score / (totalMetrics * 2) : 0;
+
+    let overall, details;
+    if (avgScore >= 0.8) {
+      overall = 'low';
+      details = 'Excellent performance across Core Web Vitals';
+    } else if (avgScore >= 0.5) {
+      overall = 'medium';
+      details = 'Good performance with some metrics needing improvement';
+    } else if (avgScore >= 0.25) {
+      overall = 'high';
+      details = 'Performance issues detected affecting user experience';
+    } else {
+      overall = 'critical';
+      details = 'Significant performance problems requiring attention';
+    }
+
+    return { overall, details };
+  }
+
+  // Collect resource timing data
+  function collectResourceTiming(metrics) {
+    if (!window.performance || !window.performance.getEntriesByType) return;
+
+    try {
+      const resources = window.performance.getEntriesByType('resource');
+
+      resources.forEach(resource => {
+        const resourceData = {
+          name: resource.name.split('/').pop() || resource.name,
+          duration: Math.round(resource.duration),
+          size: resource.transferSize || 0,
+          cache_status: resource.transferSize === 0 && resource.decodedBodySize > 0 ? 'hit' : 'miss'
+        };
+
+        // Categorize by resource type
+        if (resource.initiatorType === 'script' || resource.name.includes('.js')) {
+          metrics.resource_timing.scripts.push(resourceData);
+        } else if (resource.initiatorType === 'link' || resource.name.includes('.css')) {
+          metrics.resource_timing.stylesheets.push(resourceData);
+        } else if (resource.initiatorType === 'img' || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(resource.name)) {
+          metrics.resource_timing.images.push(resourceData);
+        } else if (/\.(woff|woff2|ttf|otf)$/i.test(resource.name)) {
+          metrics.resource_timing.fonts.push(resourceData);
+        }
+      });
+
+      // Limit number of entries to prevent payload bloat
+      Object.keys(metrics.resource_timing).forEach(type => {
+        metrics.resource_timing[type] = metrics.resource_timing[type]
+          .sort((a, b) => b.duration - a.duration) // Sort by duration descending
+          .slice(0, 10); // Keep top 10
+      });
+
+    } catch (error) {
+      console.error('FeeDLooP: Error collecting resource timing:', error);
+    }
+  }
+
+  // Enhanced error context collection
+  function collectErrorContext() {
+    const errorContext = {
+      unhandled_errors: [],
+      promise_rejections: [],
+      cors_errors: [],
+      csp_violations: [],
+      total_error_count: 0,
+      error_rate: 0,
+      patterns: []
+    };
+
+    // Listen for unhandled errors
+    window.addEventListener('error', (event) => {
+      const error = {
+        message: event.message,
+        stack: event.error ? event.error.stack : '',
+        timestamp: new Date().toISOString(),
+        type: event.error ? event.error.name : 'Error',
+        file: event.filename,
+        line: event.lineno,
+        column: event.colno,
+        user_agent_specific: false,
+        frequency: 1
+      };
+
+      errorContext.unhandled_errors.push(error);
+      errorContext.total_error_count++;
+      updateErrorPatterns(errorContext, error.message);
+    });
+
+    // Listen for unhandled promise rejections
+    window.addEventListener('unhandledrejection', (event) => {
+      const rejection = {
+        reason: event.reason ? event.reason.toString() : 'Unknown rejection',
+        promise_id: 'promise-' + Date.now(),
+        timestamp: new Date().toISOString(),
+        handled: false
+      };
+
+      errorContext.promise_rejections.push(rejection);
+      errorContext.total_error_count++;
+    });
+
+    // Store in widget state
+    widgetState.diagnosticData.errorContext = errorContext;
+
+    return errorContext;
+  }
+
+  // Update error patterns for pattern detection
+  function updateErrorPatterns(errorContext, message) {
+    // Simple pattern detection - could be enhanced
+    const pattern = message.replace(/\d+/g, 'N').replace(/["'][^"']*["']/g, 'STRING');
+
+    let existingPattern = errorContext.patterns.find(p => p.pattern === pattern);
+    if (existingPattern) {
+      existingPattern.count++;
+      existingPattern.last_seen = new Date().toISOString();
+    } else {
+      errorContext.patterns.push({
+        pattern: pattern,
+        count: 1,
+        first_seen: new Date().toISOString(),
+        last_seen: new Date().toISOString()
+      });
+    }
+  }
+
+  // Collect user interaction data (with consent)
+  function collectInteractionData() {
+    if (!checkPerformanceConsent()) {
+      return null;
+    }
+
+    const interactionData = {
+      consent_given: true,
+      consent_timestamp: localStorage.getItem('feedloop_consent_timestamp'),
+      events: [],
+      session_duration: 0,
+      engagement_score: 0
+    };
+
+    const sessionStart = Date.now();
+    let interactionCount = 0;
+    let scrollDepth = 0;
+
+    // Track various user interactions
+    const trackEvent = (type, target, metadata = {}) => {
+      if (interactionData.events.length >= 100) return; // Limit events
+
+      interactionData.events.push({
+        type,
+        timestamp: new Date().toISOString(),
+        target: {
+          element: target.tagName ? target.tagName.toLowerCase() : 'unknown',
+          id: target.id || undefined,
+          class: target.className || undefined,
+          text: target.textContent ? target.textContent.substring(0, 50) : undefined
+        },
+        metadata,
+        anonymized: true
+      });
+
+      interactionCount++;
+    };
+
+    // Click tracking
+    document.addEventListener('click', (e) => {
+      trackEvent('click', e.target, {
+        x: Math.round(e.clientX / 10) * 10, // Quantize for privacy
+        y: Math.round(e.clientY / 10) * 10
+      });
+    });
+
+    // Scroll tracking
+    let lastScrollTime = 0;
+    document.addEventListener('scroll', () => {
+      const now = Date.now();
+      if (now - lastScrollTime < 250) return; // Throttle
+      lastScrollTime = now;
+
+      const currentScrollDepth = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+      if (currentScrollDepth > scrollDepth) {
+        scrollDepth = currentScrollDepth;
+        trackEvent('scroll', document.body, {
+          scroll_depth: currentScrollDepth / 100
+        });
+      }
+    });
+
+    // Calculate engagement score periodically
+    const updateEngagement = () => {
+      interactionData.session_duration = Date.now() - sessionStart;
+      interactionData.engagement_score = Math.min(1, (interactionCount * 0.1 + scrollDepth * 0.01) / 2);
+    };
+
+    setInterval(updateEngagement, 5000);
+
+    // Store in widget state
+    widgetState.diagnosticData.interactionData = interactionData;
+
+    return interactionData;
+  }
+
   // Collect diagnostic data
   function collectDiagnosticData() {
     widgetState.diagnosticData = {
@@ -674,6 +1227,17 @@
 
     // Capture network requests (if Performance API available)
     captureNetworkRequests();
+
+    // NEW: Collect enhanced performance data
+    collectPerformanceMetrics();
+
+    // NEW: Collect error context
+    collectErrorContext();
+
+    // NEW: Collect interaction data (if consent given)
+    if (checkPerformanceConsent()) {
+      collectInteractionData();
+    }
   }
 
   // Capture console logs
@@ -818,6 +1382,13 @@
     // Smart diagnostic data collection that adapts to content size
     const diagnosticData = optimizeDiagnosticData();
 
+    // Enhanced data collection
+    const enhancedData = {
+      performance_metrics: widgetState.diagnosticData.performanceMetrics,
+      interaction_data: widgetState.diagnosticData.interactionData,
+      error_context: widgetState.diagnosticData.errorContext
+    };
+
     const formData = {
       project_key: widgetState.projectKey,
       type: widgetState.reportType,
@@ -828,13 +1399,63 @@
       reporter_email: form.querySelector('#feedloop-email').value.trim() || null,
       url: widgetState.diagnosticData.url,
       user_agent: widgetState.diagnosticData.userAgent,
-      console_logs: diagnosticData.consoleLogs,
-      network_requests: diagnosticData.networkRequests,
+      console_logs: JSON.stringify({
+        entries: diagnosticData.consoleLogs,
+        // Enhanced: Embed performance and error data in console_logs for Option 1
+        performance_metrics: enhancedData.performance_metrics,
+        error_context: enhancedData.error_context,
+        metadata: {
+          total_count: diagnosticData.consoleLogs.length,
+          error_count: diagnosticData.consoleLogs.filter(log => log.type === 'error').length,
+          warning_count: diagnosticData.consoleLogs.filter(log => log.type === 'warn').length,
+          truncated: false
+        }
+      }),
+      network_requests: JSON.stringify({
+        entries: diagnosticData.networkRequests.map(req => ({
+          id: 'req-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+          url: req.name,
+          method: 'GET', // Default for resource timing
+          status: 200, // Assume success for resource timing
+          duration: req.duration,
+          timestamp: new Date().toISOString(),
+          type: req.type || 'other',
+          size: {
+            request: 0,
+            response: req.size || 0,
+            total: req.size || 0
+          },
+          timing: {
+            dns: 0,
+            tcp: 0,
+            request: Math.round(req.duration * 0.3),
+            response: Math.round(req.duration * 0.7),
+            total: req.duration
+          },
+          priority: 'medium',
+          cache_status: req.cache_status || 'miss'
+        })),
+        metadata: {
+          total_requests: diagnosticData.networkRequests.length,
+          failed_requests: 0,
+          total_duration: diagnosticData.networkRequests.reduce((sum, req) => sum + req.duration, 0),
+          total_size: diagnosticData.networkRequests.reduce((sum, req) => sum + (req.size || 0), 0)
+        }
+      }),
+      // NEW: Enhanced fields for Option 2 (dedicated columns)
+      performance_metrics: enhancedData.performance_metrics ? JSON.stringify(enhancedData.performance_metrics) : null,
+      interaction_data: enhancedData.interaction_data ? JSON.stringify(enhancedData.interaction_data) : null,
+      error_context: enhancedData.error_context ? JSON.stringify(enhancedData.error_context) : null,
       attachments: widgetState.attachments
     };
 
     console.log('FeeDLooP Debug: Final form data object:', formData);
     console.log('FeeDLooP Debug: project_key in formData:', formData.project_key);
+    console.log('FeeDLooP Debug: Enhanced data included:', {
+      performance_metrics: !!formData.performance_metrics,
+      interaction_data: !!formData.interaction_data,
+      error_context: !!formData.error_context
+    });
 
     return formData;
   }

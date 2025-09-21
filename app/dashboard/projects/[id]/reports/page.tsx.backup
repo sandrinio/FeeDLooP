@@ -176,25 +176,8 @@ export default function ProjectReportsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          report_ids: Array.from(selectedReports),
-          format: 'csv',
-          include_fields: {
-            title: true,
-            description: true,
-            type: true,
-            priority: true,
-            reporter: true,
-            url: true,
-            created_at: true,
-            console_logs: false,
-            network_requests: false,
-            performance_metrics: false,
-            interaction_data: false,
-            error_context: false,
-            user_agent: false,
-            viewport: false,
-            attachments: false
-          }
+          reportIds: Array.from(selectedReports),
+          format: 'csv'
         })
       })
 
