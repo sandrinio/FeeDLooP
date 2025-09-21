@@ -72,7 +72,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         priority,
         reporter_email,
         reporter_name,
-        url,
         user_agent,
         console_logs,
         network_requests,
@@ -270,7 +269,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         filename,
         file_size,
         mime_type,
-        url,
+        file_url,
         created_at
       `)
       .eq('report_id', reportId)
