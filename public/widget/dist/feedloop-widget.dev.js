@@ -1,6 +1,6 @@
 
-// FeeDLooP Widget v0.1.0 (Build: mftprpxi)
-// Built on: 2025-09-21T13:09:07.979Z
+// FeeDLooP Widget v0.1.0 (Build: mftzjvjy)
+// Built on: 2025-09-21T17:42:58.179Z
 // For more info: https://feedloop.com
 
 (function() {
@@ -1593,80 +1593,100 @@
     }
   }
 
-  // Submit feedback to API
+  // Submit feedback to API with backwards compatibility
   async function submitFeedback(data) {
     console.log('FeeDLooP Debug: submitFeedback called');
     console.log('- Input data:', data);
     console.log('- WIDGET_API_BASE:', WIDGET_API_BASE);
 
+    // First attempt: Try with enhanced v2.0.0+ fields
+    try {
+      const response = await attemptSubmission(data, true);
+      if (response.ok) {
+        console.log('FeeDLooP Debug: Submission successful with enhanced fields');
+        return response;
+      }
+
+      // Check if it's a validation error related to enhanced fields
+      const responseText = await response.text();
+      console.log('FeeDLooP Debug: Enhanced submission failed:', responseText);
+
+      if (response.status === 400 && responseText.toLowerCase().includes('validation')) {
+        console.log('FeeDLooP Debug: Detected validation failure, attempting backwards-compatible mode');
+
+        // Second attempt: Fallback to basic mode without enhanced fields
+        const basicResponse = await attemptSubmission(data, false);
+
+        if (basicResponse.ok) {
+          console.log('FeeDLooP Debug: Fallback submission successful in basic mode');
+          return basicResponse;
+        } else {
+          const basicResponseText = await basicResponse.text();
+          console.log('FeeDLooP Debug: Even basic submission failed:', basicResponseText);
+          return basicResponse;
+        }
+      }
+
+      return response;
+    } catch (error) {
+      console.error('FeeDLooP Debug: Submission error:', error);
+      throw error;
+    }
+  }
+
+  // Attempt submission with or without enhanced fields
+  async function attemptSubmission(data, includeEnhancedFields) {
     const formData = new FormData();
 
-    // Try to compress diagnostic data if it's large
-    if (data.diagnostic_data && JSON.stringify(data.diagnostic_data).length > 50000) {
-      const compressed = await compressData(data.diagnostic_data);
-      if (compressed) {
-        formData.append('diagnostic_data_compressed', compressed);
-        formData.append('compression_type', 'gzip');
-        console.log('FeeDLooP Debug: Using compressed diagnostic data');
-      } else {
-        formData.append('diagnostic_data', JSON.stringify(data.diagnostic_data));
-        console.log('FeeDLooP Debug: Compression failed, using uncompressed diagnostic data');
-      }
-    } else {
-      // Add text fields normally
-      Object.keys(data).forEach(key => {
-        if (key !== 'attachments' && data[key] !== null) {
-          const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
-          console.log(`FeeDLooP Debug: Adding form field ${key}:`, value);
-          formData.append(key, value);
-        }
-      });
-    }
+    console.log(`FeeDLooP Debug: Attempting submission ${includeEnhancedFields ? 'WITH' : 'WITHOUT'} enhanced fields`);
 
-    // Add non-diagnostic fields
-    Object.keys(data).forEach(key => {
-      if (key !== 'attachments' && key !== 'diagnostic_data' && data[key] !== null) {
+    // Always include basic fields
+    const basicFields = [
+      'project_key', 'type', 'title', 'description', 'priority',
+      'reporter_name', 'reporter_email', 'url', 'user_agent',
+      'console_logs', 'network_requests'
+    ];
+
+    // Enhanced fields to conditionally include
+    const enhancedFields = ['performance_metrics', 'interaction_data', 'error_context'];
+
+    // Add basic fields
+    basicFields.forEach(key => {
+      if (data[key] !== null && data[key] !== undefined) {
         const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
-        console.log(`FeeDLooP Debug: Adding form field ${key}:`, value);
+        console.log(`FeeDLooP Debug: Adding basic field ${key}:`, typeof value === 'string' && value.length > 100 ? value.substring(0, 100) + '...' : value);
         formData.append(key, value);
       }
     });
 
-    // Add attachments
-    data.attachments.forEach((file, index) => {
-      console.log(`FeeDLooP Debug: Adding attachment ${index}:`, file.name, file.size);
-      formData.append(`attachment_${index}`, file);
-    });
+    // Conditionally add enhanced fields
+    if (includeEnhancedFields) {
+      enhancedFields.forEach(key => {
+        if (data[key] !== null && data[key] !== undefined) {
+          const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
+          console.log(`FeeDLooP Debug: Adding enhanced field ${key}:`, typeof value === 'string' && value.length > 100 ? value.substring(0, 100) + '...' : value);
+          formData.append(key, value);
+        }
+      });
+    } else {
+      console.log('FeeDLooP Debug: Skipping enhanced fields for backwards compatibility');
+    }
 
-    // Debug FormData contents
-    console.log('FeeDLooP Debug: FormData entries:');
-    for (let [key, value] of formData.entries()) {
-      console.log(`- ${key}:`, value);
+    // Add attachments
+    if (data.attachments && data.attachments.length > 0) {
+      data.attachments.forEach((file, index) => {
+        console.log(`FeeDLooP Debug: Adding attachment ${index}:`, file.name, file.size);
+        formData.append('attachments', file);
+      });
     }
 
     const apiUrl = `${WIDGET_API_BASE}/api/widget/submit`;
     console.log('FeeDLooP Debug: Submitting to URL:', apiUrl);
 
-    // Submit to API
-    try {
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        body: formData
-      });
-
-      console.log('FeeDLooP Debug: Response status:', response.status);
-      console.log('FeeDLooP Debug: Response OK:', response.ok);
-
-      if (!response.ok) {
-        const responseText = await response.text();
-        console.log('FeeDLooP Debug: Error response body:', responseText);
-      }
-
-      return response;
-    } catch (error) {
-      console.error('FeeDLooP Debug: Fetch error:', error);
-      throw error;
-    }
+    return fetch(apiUrl, {
+      method: 'POST',
+      body: formData
+    });
   }
 
   // Show/hide loading state

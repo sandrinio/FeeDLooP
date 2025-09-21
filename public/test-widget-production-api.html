@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Test - Production API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-info {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+        .test-info h3 {
+            margin-top: 0;
+            color: #1565c0;
+        }
+        .test-step {
+            background: #f8f9fa;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .console-log {
+            background: #2d3748;
+            color: #a0aec0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>FeeDLooP Widget Test - Production API</h1>
+
+        <div class="test-info">
+            <h3>Test Configuration</h3>
+            <p><strong>Widget Source:</strong> Local development build</p>
+            <p><strong>API Target:</strong> https://feedloop.soula.ge</p>
+            <p><strong>Project Key:</strong> qqa6gF2deJypP3VKEYODxu31yQLaygYz</p>
+        </div>
+
+        <div class="instructions">
+            <strong>Testing Instructions:</strong>
+            <ol>
+                <li>Click the feedback widget button in the bottom right corner</li>
+                <li>Test 1: Fill out a simple form with title and description, then submit</li>
+                <li>Test 2: Fill out another form and attach the test image, then submit</li>
+                <li>Observe logs below for any errors or success messages</li>
+            </ol>
+        </div>
+
+        <div id="test-status" class="status" style="display:none;"></div>
+
+        <div class="console-log" id="console-output">
+            <div style="color: #4a5568;">[Console logs will appear here...]</div>
+        </div>
+    </div>
+
+    <script>
+        // Force production API base for testing
+        window.FEEDLOOP_API_BASE = 'https://feedloop.soula.ge';
+    </script>
+
+    <!-- Local Widget Script with Production API -->
+    <script
+        src="/widget/dist/feedloop-widget.min.js"
+        data-project-key="qqa6gF2deJypP3VKEYODxu31yQLaygYz">
+    </script>
+
+    <script>
+        // Console log capture
+        const consoleOutput = document.getElementById('console-output');
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        function addLogEntry(type, args) {
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg =>
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+
+            const logEntry = document.createElement('div');
+            logEntry.style.marginBottom = '5px';
+            logEntry.style.color = type === 'error' ? '#ff6b6b' :
+                                 type === 'warn' ? '#ffd93d' : '#a0aec0';
+            logEntry.innerHTML = `<span style="color: #4a5568;">[${timestamp}]</span> <span style="color: #805ad5;">[${type.toUpperCase()}]</span> ${message}`;
+
+            consoleOutput.appendChild(logEntry);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addLogEntry('log', args);
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addLogEntry('error', args);
+        };
+
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addLogEntry('warn', args);
+        };
+
+        // Network request monitoring
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            console.log('🌐 Network Request:', args[0]);
+            if (args[1]) {
+                console.log('🔧 Request Options:', {
+                    method: args[1].method || 'GET',
+                    headers: args[1].headers || 'None',
+                    body: args[1].body ? 'FormData/Body Present' : 'No Body'
+                });
+            }
+
+            return originalFetch.apply(this, args)
+                .then(response => {
+                    console.log('✅ Network Response:', {
+                        url: args[0],
+                        status: response.status,
+                        statusText: response.statusText,
+                        ok: response.ok
+                    });
+                    return response;
+                })
+                .catch(error => {
+                    console.error('❌ Network Error:', {
+                        url: args[0],
+                        error: error.message
+                    });
+                    throw error;
+                });
+        };
+
+        // Widget event monitoring
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Page loaded - Widget test ready');
+            console.log('🎯 API Base configured:', window.FEEDLOOP_API_BASE);
+
+            // Monitor for widget creation
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList') {
+                        mutation.addedNodes.forEach(function(node) {
+                            if (node.nodeType === 1) {
+                                if (node.id && node.id.includes('feedloop')) {
+                                    console.log('🎛️ Widget element detected:', {
+                                        id: node.id,
+                                        className: node.className,
+                                        tagName: node.tagName
+                                    });
+                                }
+                                if (node.className && node.className.includes('feedloop')) {
+                                    console.log('🎨 Widget component detected:', {
+                                        className: node.className,
+                                        tagName: node.tagName
+                                    });
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+
+            // Test status updates
+            window.updateTestStatus = function(message, isError = false) {
+                const statusEl = document.getElementById('test-status');
+                statusEl.style.display = 'block';
+                statusEl.className = 'status ' + (isError ? 'error' : 'success');
+                statusEl.textContent = message;
+                console.log(isError ? '❌' : '✅', 'Test Status:', message);
+            };
+        });
+
+        // Listen for form submissions
+        document.addEventListener('submit', function(e) {
+            if (e.target.closest('.feedloop-form')) {
+                console.log('📝 Form submission detected');
+            }
+        });
+    </script>
+</body>
+</html>
