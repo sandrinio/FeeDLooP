@@ -1,6 +1,6 @@
 
-// FeeDLooP Widget v0.1.0 (Build: mftzrspo)
-// Built on: 2025-09-21T17:49:07.745Z
+// FeeDLooP Widget v0.1.0 (Build: mfu07jl9)
+// Built on: 2025-09-21T18:01:22.418Z
 // For more info: https://feedloop.com
 
 (function() {
@@ -1211,8 +1211,18 @@
 
   // Collect diagnostic data
   function collectDiagnosticData() {
+    // Validate URL before sending
+    let validUrl = null;
+    try {
+      const url = new URL(window.location.href);
+      validUrl = url.href;
+    } catch (error) {
+      console.warn('Invalid URL detected:', window.location.href, error);
+      validUrl = null;
+    }
+
     widgetState.diagnosticData = {
-      url: window.location.href,
+      url: validUrl,
       userAgent: navigator.userAgent,
       screenResolution: `${window.screen.width}x${window.screen.height}`,
       windowSize: `${window.innerWidth}x${window.innerHeight}`,

@@ -1201,8 +1201,18 @@
 
   // Collect diagnostic data
   function collectDiagnosticData() {
+    // Validate URL before sending
+    let validUrl = null;
+    try {
+      const url = new URL(window.location.href);
+      validUrl = url.href;
+    } catch (error) {
+      console.warn('Invalid URL detected:', window.location.href, error);
+      validUrl = null;
+    }
+
     widgetState.diagnosticData = {
-      url: window.location.href,
+      url: validUrl,
       userAgent: navigator.userAgent,
       screenResolution: `${window.screen.width}x${window.screen.height}`,
       windowSize: `${window.innerWidth}x${window.innerHeight}`,
