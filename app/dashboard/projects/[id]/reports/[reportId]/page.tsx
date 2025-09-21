@@ -343,30 +343,90 @@ export default function EnhancedReportDetailPage() {
                     <PaperClipIcon className="h-5 w-5 mr-2" />
                     Attachments ({report.fl_attachments.length})
                   </h2>
-                  <div className="space-y-3">
-                    {report.fl_attachments.map((attachment) => (
-                      <div key={attachment.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <DocumentTextIcon className="h-5 w-5 text-gray-400" />
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{attachment.filename}</p>
-                            <p className="text-xs text-gray-500">
-                              {Math.round(attachment.file_size / 1024)} KB
-                            </p>
-                          </div>
+                  <div className="space-y-4">
+                    {report.fl_attachments.map((attachment) => {
+                      const isImage = attachment.filename.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/)
+
+                      return (
+                        <div key={attachment.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                          {isImage && attachment.file_url ? (
+                            // Image preview
+                            <div className="space-y-3">
+                              <div className="relative">
+                                <img
+                                  src={attachment.file_url}
+                                  alt={attachment.filename}
+                                  className="w-full h-auto max-h-96 object-contain bg-gray-50"
+                                  onError={(e) => {
+                                    // Fallback to document icon if image fails to load
+                                    const target = e.target as HTMLImageElement
+                                    target.style.display = 'none'
+                                    const fallback = target.nextElementSibling as HTMLElement
+                                    if (fallback) fallback.style.display = 'flex'
+                                  }}
+                                />
+                                {/* Fallback content for failed image loads */}
+                                <div className="hidden items-center justify-center p-8 bg-gray-50">
+                                  <DocumentTextIcon className="h-12 w-12 text-gray-400" />
+                                  <span className="ml-2 text-gray-500">Failed to load image</span>
+                                </div>
+                              </div>
+                              <div className="px-4 pb-4">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-900">{attachment.filename}</p>
+                                    <p className="text-xs text-gray-500">
+                                      {Math.round(attachment.file_size / 1024)} KB
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <a
+                                      href={attachment.file_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue-600 hover:text-blue-500 text-sm"
+                                    >
+                                      View Full Size
+                                    </a>
+                                    <span className="text-gray-300">|</span>
+                                    <a
+                                      href={attachment.file_url}
+                                      download={attachment.filename}
+                                      className="text-blue-600 hover:text-blue-500 text-sm"
+                                    >
+                                      Download
+                                    </a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            // Non-image file
+                            <div className="flex items-center justify-between p-4">
+                              <div className="flex items-center space-x-3">
+                                <DocumentTextIcon className="h-5 w-5 text-gray-400" />
+                                <div>
+                                  <p className="text-sm font-medium text-gray-900">{attachment.filename}</p>
+                                  <p className="text-xs text-gray-500">
+                                    {Math.round(attachment.file_size / 1024)} KB
+                                  </p>
+                                </div>
+                              </div>
+                              {attachment.file_url && (
+                                <a
+                                  href={attachment.file_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-500 text-sm"
+                                >
+                                  Download
+                                </a>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        {attachment.url && (
-                          <a
-                            href={attachment.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-500 text-sm"
-                          >
-                            Download
-                          </a>
-                        )}
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </div>
               )}

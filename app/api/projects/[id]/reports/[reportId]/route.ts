@@ -83,6 +83,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           filename,
           file_size,
           mime_type,
+          file_url,
           created_at
         )
       `)
@@ -269,6 +270,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         filename,
         file_size,
         mime_type,
+        url,
         created_at
       `)
       .eq('report_id', reportId)

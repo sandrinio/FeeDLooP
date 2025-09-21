@@ -445,7 +445,7 @@ export default function PerformanceMetrics({
                   <div>Current: {formatMetricValue(value, config.unit)}</div>
                   <div>Good: ≤ {formatMetricValue(config.thresholds.good, config.unit)}</div>
                   <div>Needs Improvement: ≤ {formatMetricValue(config.thresholds.needsImprovement, config.unit)}</div>
-                  <div>Poor: {'>'} {formatMetricValue(config.thresholds.needsImprovement, config.unit)}</div>
+                  <div>Poor: &gt; {formatMetricValue(config.thresholds.needsImprovement, config.unit)}</div>
                 </div>
               </div>
             )
