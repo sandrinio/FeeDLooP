@@ -148,7 +148,9 @@ export async function POST(request: NextRequest) {
 
     if (consoleLogs) {
       try {
-        parsedConsoleLogs = JSON.parse(consoleLogs)
+        const parsed = JSON.parse(consoleLogs)
+        // Handle both formats: direct array or object with entries property
+        parsedConsoleLogs = Array.isArray(parsed) ? parsed : (parsed.entries || [])
       } catch (error) {
         console.error('Failed to parse console logs:', error)
       }
@@ -156,7 +158,9 @@ export async function POST(request: NextRequest) {
 
     if (networkRequests) {
       try {
-        parsedNetworkRequests = JSON.parse(networkRequests)
+        const parsed = JSON.parse(networkRequests)
+        // Handle both formats: direct array or object with entries property
+        parsedNetworkRequests = Array.isArray(parsed) ? parsed : (parsed.entries || [])
       } catch (error) {
         console.error('Failed to parse network requests:', error)
       }
